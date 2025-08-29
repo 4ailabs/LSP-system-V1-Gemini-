@@ -1,0 +1,7 @@
+{
+  "name": "LSP Insight System",
+  "description": "An AI-powered assistant to facilitate LEGO® Serious Play® sessions. It guides users through a structured, six-phase process of building, storytelling, and reflection to unlock deep insights and foster creative problem-solving.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
