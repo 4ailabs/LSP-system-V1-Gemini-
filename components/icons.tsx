@@ -120,3 +120,10 @@ export const InsightsIcon = ({ className }: { className?: string }) => (
 export const ChevronDownIcon = ({ className }: { className?: string }) => (
     <ChevronDown className={className} />
 );
+
+// AI Icon - Brick de LEGO
+export const BrickIcon = ({ className }: { className?: string }) => (
+    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-sm bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center ${className || ''}`}>
+        <div className="w-3 h-3 sm:w-4 sm:h-4 bg-orange-200 rounded-sm opacity-80"></div>
+    </div>
+);

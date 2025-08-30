@@ -1,30 +1,54 @@
 import React, { useRef, useEffect } from 'react';
-import { Message } from '../types';
 import MessageComponent from './Message';
-import { Logo } from './icons';
+import { Logo, BrickIcon } from './icons';
+import { Target, Blocks, Lightbulb } from 'lucide-react';
 
 interface ChatWindowProps {
-  messages: Message[];
+  messages: Array<{
+    id: string;
+    role: string;
+    content: string;
+    isInsight?: boolean;
+  }>;
   isLoading: boolean;
-  speakingMessageId: string | null;
-  onToggleSpeech: (message: Message) => void;
-  copiedMessageId: string | null;
-  onCopyMessage: (message: Message) => void;
+  currentPhase: number;
   onToggleInsight: (messageId: string) => void;
+  onCopyMessage: (message: any) => void;
+  onToggleSpeech: (message: any) => void;
 }
 
 const WelcomeScreen = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center text-slate-500">
-        <Logo />
-        <h1 className="text-2xl font-bold mt-4 text-slate-700 dark:text-slate-300">Bienvenido al LSP Insight System</h1>
-        <p className="mt-2 max-w-md">
-            Estoy aquí para guiarte en tu sesión de LEGO® Serious Play®. Para comenzar, cuéntame un poco sobre el tema que te gustaría explorar hoy.
-        </p>
+    <div className="flex flex-col items-center justify-center h-full text-center max-w-2xl mx-auto px-4 sm:px-6">
+        <div className="mb-8">
+            <Logo />
+        </div>
+        
+        <div className="space-y-6">
+            <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-3">
+                    Bienvenido al LSP Insight System
+                </h1>
+                <p className="text-base sm:text-lg text-slate-600 dark:text-white leading-relaxed">
+                    Tu facilitador especializado en LEGO® Serious Play®
+                </p>
+            </div>
+            
+            <p className="text-slate-700 dark:text-white leading-relaxed max-w-lg">
+                Estoy aquí para guiarte en tu sesión de descubrimiento y reflexión profunda. 
+                Para comenzar, cuéntame un poco sobre el tema que te gustaría explorar hoy.
+            </p>
+        </div>
     </div>
 );
 
-
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, speakingMessageId, onToggleSpeech, copiedMessageId, onCopyMessage, onToggleInsight }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ 
+  messages, 
+  isLoading, 
+  currentPhase, 
+  onToggleInsight, 
+  onCopyMessage, 
+  onToggleSpeech 
+}) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -36,7 +60,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, speakingMe
   return (
     <div
       ref={scrollRef}
-      className="flex-1 overflow-y-auto p-6"
+      className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-white dark:bg-slate-900"
     >
       <div className="max-w-4xl mx-auto h-full">
         {messages.length === 0 && !isLoading ? (
@@ -46,22 +70,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, speakingMe
                 <MessageComponent 
                   key={msg.id} 
                   message={msg}
-                  speakingMessageId={speakingMessageId}
-                  onToggleSpeech={onToggleSpeech}
-                  copiedMessageId={copiedMessageId}
-                  onCopyMessage={onCopyMessage}
+                  isInsight={msg.isInsight}
+                  isCopied={false}
+                  isSpeaking={false}
                   onToggleInsight={onToggleInsight}
+                  onCopyMessage={onCopyMessage}
+                  onToggleSpeech={onToggleSpeech}
                 />
             ))
         )}
 
         {isLoading && messages[messages.length - 1]?.role === 'user' && (
-          <div className="flex items-start gap-4 my-6">
-              <div className="w-9 h-9 rounded-full bg-slate-800 text-white flex items-center justify-center flex-shrink-0 font-bold text-sm shadow-md">AI</div>
-              <div className="p-4 rounded-2xl max-w-lg bg-white dark:bg-slate-700 rounded-bl-none flex items-center space-x-2 shadow-sm">
-                  <div className="w-2 h-2 bg-slate-500 rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-slate-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-slate-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          <div className="flex items-start gap-3 sm:gap-4 my-4 sm:my-6">
+              <div className="w-8 h-8 flex-shrink-0" />
+              <div className="p-3 sm:p-4 rounded-2xl max-w-lg bg-white dark:bg-slate-800 rounded-bl-none flex items-center space-x-2 shadow-md border border-slate-200 dark:border-slate-600">
+                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
               </div>
           </div>
         )}

@@ -45,8 +45,7 @@ declare global {
 interface ChatInputProps {
   onSendMessage: (
     text: string, 
-    image?: { base64: string; mimeType: string },
-    modelTitle?: string,
+    imageData?: string
   ) => void;
   isLoading: boolean;
 }
@@ -163,7 +162,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
       } : null
     });
 
-    onSendMessage(text, image || undefined, modelTitle || undefined);
+    onSendMessage(text, image?.base64);
     
     setText('');
     resetImageState();
@@ -192,34 +191,34 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   }, [text]);
 
   return (
-    <div className="bg-slate-100 dark:bg-slate-900 px-4 py-3">
+    <div className="bg-white dark:bg-slate-800 px-2 sm:px-3 md:px-4 py-2 sm:py-3 border-t border-slate-200 dark:border-slate-600">
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
           {imagePreview && (
-            <div className="p-2 bg-white dark:bg-slate-800 rounded-t-2xl flex gap-4 items-start">
-                <div className="relative w-24 h-24 p-1 border rounded-md bg-white flex-shrink-0">
+            <div className="p-2 sm:p-3 bg-white dark:bg-slate-700 rounded-t-2xl flex flex-col sm:flex-row gap-3 sm:gap-4 items-start border border-slate-200 dark:border-slate-600 shadow-sm">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 p-1 border-2 border-slate-300 dark:border-slate-500 rounded-md bg-white dark:bg-slate-600 flex-shrink-0">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded" />
                   <button
                     type="button"
                     onClick={resetImageState}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md"
+                    className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center text-xs shadow-md transition-colors"
                     aria-label="Remove image"
                   >
                     X
                   </button>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 w-full">
                     <input 
                         type="text"
                         value={modelTitle}
                         onChange={(e) => setModelTitle(e.target.value)}
                         placeholder="Dale un título a tu modelo..."
-                        className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full bg-slate-100 dark:bg-slate-600 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 rounded-md p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 border border-slate-300 dark:border-slate-500"
                     />
                 </div>
             </div>
           )}
-          <div className={`flex items-end p-2 bg-white dark:bg-slate-800 shadow-sm ${imagePreview ? 'rounded-b-2xl' : 'rounded-2xl'}`}>
+          <div className={`flex items-end p-2 sm:p-3 bg-white dark:bg-slate-700 shadow-md border border-slate-200 dark:border-slate-600 ${imagePreview ? 'rounded-b-2xl' : 'rounded-2xl'}`}>
             <input
               type="file"
               ref={fileInputRef}
@@ -230,7 +229,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400"
+              className="p-1.5 sm:p-2 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors"
               disabled={isLoading || isListening}
               aria-label="Attach file"
             >
@@ -239,14 +238,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
             <button
               type="button"
               onClick={handleMicClick}
-              className={`p-2 ${isListening ? 'text-red-500 animate-pulse' : 'text-slate-500 hover:text-blue-600 dark:hover:text-blue-400'}`}
+              className={`p-1.5 sm:p-2 ${isListening ? 'text-red-500 animate-pulse' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400'} transition-colors`}
               disabled={isLoading}
               aria-label={isListening ? 'Stop listening' : 'Start listening'}
             >
               {isListening ? <StopCircleIcon /> : <MicrophoneIcon />}
             </button>
             {isListening ? (
-                <div className="p-2 text-slate-500 text-sm w-full flex-1">
+                <div className="p-2 text-slate-600 dark:text-slate-300 text-sm w-full flex-1 font-medium">
                     Escuchando...
                 </div>
             ) : (
@@ -256,14 +255,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
                     onChange={handleInput}
                     onKeyDown={handleKeyDown}
                     placeholder="Escribe tu mensaje o describe tu modelo..."
-                    className="flex-1 bg-transparent p-2 text-slate-800 dark:text-slate-200 focus:outline-none resize-none max-h-40"
+                    className="flex-1 bg-transparent p-2 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none resize-none max-h-32 text-xs font-medium"
                     rows={1}
                     disabled={isLoading}
                 />
             )}
             <button
               type="submit"
-              className="p-2 rounded-full text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700"
+              className="p-1.5 sm:p-2 rounded-full text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 shadow-md"
               disabled={isLoading || (!text.trim() && !image)}
               aria-label="Send message"
             >

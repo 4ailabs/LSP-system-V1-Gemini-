@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Hook</title>
+</head>
+<body>
+    <h1>Test Hook useLocalDatabase</h1>
+    <div id="app">
+        <button onclick="testHook()">Test Hook</button>
+        <div id="output"></div>
+    </div>
+
+    <script type="module">
+        // Simular el hook
+        function useLocalDatabase() {
+            const [isInitialized, setIsInitialized] = useState(false);
+            const [sessions, setSessions] = useState([]);
+            
+            const initialize = () => {
+                console.log('Initializing...');
+                setIsInitialized(true);
+            };
+            
+            const createSession = (name) => {
+                const newSession = {
+                    id: Date.now().toString(),
+                    name,
+                    currentPhase: 1,
+                    createdAt: Date.now()
+                };
+                setSessions(prev => [newSession, ...prev]);
+                return newSession;
+            };
+            
+            return {
+                isInitialized,
+                sessions,
+                initialize,
+                createSession
+            };
+        }
+        
+        // Test simple
+        function testHook() {
+            console.log('Testing hook...');
+            const hook = useLocalDatabase();
+            hook.initialize();
+            const session = hook.createSession('Test Session');
+            console.log('Session created:', session);
+            document.getElementById('output').innerHTML = `
+                <p>Hook initialized: ${hook.isInitialized}</p>
+                <p>Sessions: ${hook.sessions.length}</p>
+                <p>Last session: ${JSON.stringify(session)}</p>
+            `;
+        }
+        
+        // Simular useState
+        function useState(initial) {
+            let state = initial;
+            const setState = (newState) => {
+                state = typeof newState === 'function' ? newState(state) : newState;
+            };
+            return [state, setState];
+        }
+    </script>
+</body>
+</html>

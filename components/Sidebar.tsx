@@ -1,124 +1,207 @@
-
-
-import React, { useState } from 'react';
-import { LspPhase, MessagePart, Message } from '../types';
-import { PHASE_DESCRIPTIONS } from '../constants';
+import React from 'react';
 import { 
-    Logo, CopyIcon, PlusIcon, 
-    ChevronDownIcon, GalleryIcon, InsightsIcon, EvaluationIcon
-} from './icons';
+  Plus, 
+  MessageSquare, 
+  Lightbulb, 
+  Image as ImageIcon,
+  Trash2,
+  Play,
+  Pause,
+  CheckCircle
+} from 'lucide-react';
+import { LspPhase } from '../types';
+import { PHASE_DESCRIPTIONS } from '../constants';
 
 interface SidebarProps {
-  messages: Message[];
+  sessions: Array<{
+    id: string;
+    name: string;
+    currentPhase: number;
+    createdAt: number;
+  }>;
   currentPhase: LspPhase;
+  messages: Array<{
+    id: string;
+    role: string;
+    content: string;
+    isInsight: boolean;
+  }>;
   onNewSession: () => void;
-  onCopyChat: () => void;
-  isCopied: boolean;
+  onSelectSession: (sessionId: string) => void;
+  onDeleteSession: (sessionId: string) => void;
 }
 
-const CollapsibleSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => {
-    const [isOpen, setIsOpen] = useState(true);
-    return (
-        <div>
-            <button onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center text-left py-2 px-2 rounded hover:bg-slate-700/50">
-                <div className="flex items-center space-x-3">
-                    {icon}
-                    <span className="font-semibold text-sm">{title}</span>
-                </div>
-                <ChevronDownIcon className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {isOpen && <div className="py-2 pl-4 pr-2">{children}</div>}
-        </div>
-    );
-};
+const Sidebar: React.FC<SidebarProps> = ({
+  sessions,
+  currentPhase,
+  messages,
+  onNewSession,
+  onSelectSession,
+  onDeleteSession
+}) => {
+  // Calcular estadísticas
+  const totalMessages = messages.length;
+  const insights = messages.filter(msg => msg.isInsight);
+  const images = messages.filter(msg => msg.content.includes('image'));
 
-const Sidebar: React.FC<SidebarProps> = ({ messages, currentPhase, onNewSession, onCopyChat, isCopied }) => {
-    const models = messages
-        .flatMap(m => m.parts)
-        .filter((part): part is MessagePart & { image: NonNullable<MessagePart['image']> } => !!part.image)
-        .map((part, index) => ({ ...part.image, id: `model-${index}` })) || [];
-    
-    const insights = messages.filter(m => m.isInsight) || [];
+  return (
+    <div className="w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-600 flex flex-col h-full">
+      {/* Header */}
+      <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700">
+        <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+          LSP Insight System
+        </h1>
+        <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
+          Facilitador LEGO® Serious Play®
+        </p>
+      </div>
 
-    return (
-    <div className="w-80 h-screen bg-slate-800 text-white p-4 flex flex-col fixed top-0 left-0">
-        <div className="flex items-center space-x-3 mb-6 px-2">
-            <Logo />
-            <h1 className="text-xl font-bold">LSP Insight System</h1>
-        </div>
-      
-        <div className="flex-1 overflow-y-auto space-y-4 -mr-2 pr-2">
-            {/* Single Session Section */}
-            <CollapsibleSection title="Mi Sesión" icon={<PlusIcon className="w-5 h-5"/>}>
-                <div className="p-2 text-sm text-slate-300">
-                    <p>Sesión Única</p>
-                    <p className="text-xs text-slate-400 mt-1">
-                        {messages.length} mensajes
-                    </p>
+      {/* Sesiones */}
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
+        {/* Botón Nueva Sesión */}
+        <button
+          onClick={onNewSession}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors shadow-md font-medium text-xs"
+        >
+          <Plus size={18} className="sm:w-5 sm:h-5" />
+          <span>Nueva Sesión</span>
+        </button>
+
+        {/* Lista de Sesiones */}
+        <div className="space-y-2 sm:space-y-3">
+          <h3 className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-white uppercase tracking-wide">
+            Sesiones Activas
+          </h3>
+          {sessions.map((session) => (
+            <div
+              key={session.id}
+              className="bg-white dark:bg-slate-700 rounded-lg p-2 sm:p-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors border border-slate-200 dark:border-slate-600"
+              onClick={() => onSelectSession(session.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                    {session.name}
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                    Fase {session.currentPhase} • {new Date(session.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                <button onClick={onNewSession} className="w-full flex items-center space-x-2 text-sm mt-2 p-2 rounded text-slate-300 hover:bg-slate-700/50 hover:text-white">
-                    <PlusIcon className="w-4 h-4" />
-                    <span>Nueva Sesión</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteSession(session.id);
+                  }}
+                  className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1 transition-colors"
+                  title="Eliminar sesión"
+                >
+                  <Trash2 size={14} className="sm:w-4 sm:h-4" />
                 </button>
-            </CollapsibleSection>
-
-            {/* Phases Section */}
-            <CollapsibleSection title="Fases" icon={<EvaluationIcon className="w-5 h-5"/>}>
-                 <ul className="space-y-1">
-                    {Object.entries(PHASE_DESCRIPTIONS).map(([phase, { title, icon: Icon }]) => {
-                        const phaseNum = parseInt(phase, 10) as LspPhase;
-                        const isActive = currentPhase === phaseNum;
-                        const isCompleted = currentPhase > phaseNum;
-
-                        return (
-                        <li key={phase} className={`flex items-center space-x-3 p-2 rounded-lg transition-all duration-200 text-sm ${isActive ? 'bg-slate-700' : ''}`}>
-                            <Icon className={`w-5 h-5 transition-colors duration-200 ${isActive || isCompleted ? 'text-blue-400' : 'text-slate-500'}`} />
-                            <span className={`${isActive ? 'text-white' : 'text-slate-300'}`}>{title}</span>
-                        </li>
-                        );
-                    })}
-                </ul>
-            </CollapsibleSection>
-
-            {/* Model Gallery Section */}
-            {models.length > 0 && (
-                <CollapsibleSection title="Galería de Modelos" icon={<GalleryIcon className="w-5 h-5"/>}>
-                    <div className="grid grid-cols-3 gap-2">
-                        {models.map(model => (
-                            <div key={model.id} className="group relative">
-                                <img src={`data:${model.mimeType};base64,${model.base64}`} alt={model.modelTitle} className="w-full h-16 object-cover rounded"/>
-                                <div className="absolute inset-0 bg-black/70 flex items-center justify-center p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <p className="text-xs text-white text-center leading-tight">{model.modelTitle}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </CollapsibleSection>
-            )}
-
-            {/* Insights Section */}
-             {insights.length > 0 && (
-                <CollapsibleSection title="Insights Clave" icon={<InsightsIcon className="w-5 h-5"/>}>
-                    <ul className="space-y-2">
-                        {insights.map(insight => (
-                             <li key={insight.id} className="text-xs text-slate-300 border-l-2 border-yellow-400 pl-3 py-1">
-                                {insight.parts.map(p => p.text).join(' ').substring(0, 100)}...
-                             </li>
-                        ))}
-                    </ul>
-                </CollapsibleSection>
-            )}
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="mt-auto pt-4 text-xs text-slate-500 border-t border-slate-700">
-            <button onClick={onCopyChat} className="w-full flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-slate-700 hover:bg-slate-600 transition-colors text-slate-300 mb-2">
-                <CopyIcon className="w-4 h-4" />
-                <span>{isCopied ? '¡Copiado!' : 'Copiar Chat'}</span>
-            </button>
-            <p className="text-center">Facilitador de LEGO® Serious Play®</p>
+        {/* Fases LSP */}
+        <div className="space-y-2 sm:space-y-3">
+          <h3 className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-white uppercase tracking-wide">
+            Fases LSP
+          </h3>
+          <div className="space-y-2 sm:space-y-3">
+            {Object.entries(PHASE_DESCRIPTIONS).map(([phaseKey, phase]) => {
+              const phaseId = parseInt(phaseKey) as LspPhase;
+              const isActive = phaseId === currentPhase;
+              const isCompleted = phaseId < currentPhase;
+              
+              return (
+                <div
+                  key={phaseKey}
+                  className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-colors border ${
+                    isActive 
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-white border-blue-200 dark:border-blue-700' 
+                      : isCompleted
+                      ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-white border-green-200 dark:border-green-700'
+                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-white border-slate-200 dark:border-slate-600'
+                  }`}
+                >
+                  <div className="flex-shrink-0">
+                    {isActive ? (
+                      <Play size={14} className="sm:w-4 sm:h-4 text-blue-600 dark:text-white" />
+                    ) : isCompleted ? (
+                      <CheckCircle size={14} className="sm:w-4 sm:h-4 text-green-600 dark:text-white" />
+                    ) : (
+                      <Pause size={14} className="sm:w-4 sm:h-4 text-slate-500 dark:text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium truncate">{phase.title}</p>
+                    <p className="text-xs truncate opacity-80">{phase.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
+
+        {/* Estadísticas */}
+        <div className="space-y-2 sm:space-y-3">
+          <h3 className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-white uppercase tracking-wide">
+            Estadísticas
+          </h3>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                <MessageSquare size={14} className="sm:w-4 sm:h-4 text-blue-500" />
+                <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
+                  {totalMessages}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-white mt-1 font-medium">Mensajes</p>
+            </div>
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                <Lightbulb size={14} className="sm:w-4 sm:h-4 text-yellow-500" />
+                <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
+                  {insights.length}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-white mt-1 font-medium">Insights</p>
+            </div>
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                <ImageIcon size={14} className="sm:w-4 sm:h-4 text-green-500" />
+                <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
+                  {images.length}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-white mt-1 font-medium">Modelos</p>
+            </div>
+            <div className="bg-white dark:bg-slate-700 rounded-lg p-2 sm:p-3 text-center border border-slate-200 dark:border-slate-600">
+              <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                <CheckCircle size={14} className="sm:w-4 sm:h-4 text-purple-500" />
+                <span className="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
+                  {sessions.length}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 dark:text-white mt-1 font-medium">Sesiones</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-3 sm:p-4 border-t border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700">
+        <div className="text-center">
+          <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+            LEGO® Serious Play®
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Powered by Gemini AI
+          </p>
+        </div>
+      </div>
     </div>
-    );
+  );
 };
 
 export default Sidebar;
