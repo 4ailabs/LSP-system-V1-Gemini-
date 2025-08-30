@@ -29,10 +29,45 @@ const MessageComponent: React.FC<MessageProps> = ({ message, speakingMessageId, 
   const isInsight = message.isInsight;
 
   const renderModelText = (text: string) => {
-    const rawMarkup = marked.parse(text || '') as string;
+    // Pre-procesar el texto para mejorar la legibilidad
+    let processedText = text;
+    
+    // Agregar saltos de línea después de puntos seguidos de mayúsculas
+    processedText = processedText.replace(/\. ([A-Z])/g, '.\n\n$1');
+    
+    // Agregar saltos de línea después de dos puntos
+    processedText = processedText.replace(/: /g, ':\n\n');
+    
+    // Agregar saltos de línea antes de listas (líneas que empiezan con guiones o números)
+    processedText = processedText.replace(/\n([•-]\s)/g, '\n\n$1');
+    processedText = processedText.replace(/\n(\d+\.\s)/g, '\n\n$1');
+    
+    // Agregar saltos de línea antes de preguntas
+    processedText = processedText.replace(/\n(\?)/g, '\n\n$1');
+    
+    // Agregar saltos de línea después de frases importantes
+    processedText = processedText.replace(/([.!?])\s+([A-Z][a-z]+)/g, '$1\n\n$2');
+    
+    // Mejorar el formato de listas
+    processedText = processedText.replace(/([•-])\s/g, '\n$1 ');
+    processedText = processedText.replace(/(\d+\.)\s/g, '\n$1 ');
+    
+    // Agregar espacios antes de frases que empiezan con "Ahora", "Para", "Esto", etc.
+    const importantWords = ['Ahora', 'Para', 'Esto', 'Además', 'También', 'Sin embargo', 'Por ejemplo', 'En resumen'];
+    importantWords.forEach(word => {
+      processedText = processedText.replace(new RegExp(`\\n(${word})`, 'g'), '\n\n$1');
+    });
+    
+    // Procesar con marked para markdown
+    const rawMarkup = marked.parse(processedText || '') as string;
+    
     return (
       <div
-        className="prose prose-sm dark:prose-invert max-w-none prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-2"
+        className="prose prose-sm dark:prose-invert max-w-none prose-p:my-3 prose-ul:my-4 prose-ol:my-4 prose-li:my-2 prose-headings:my-4 prose-h1:text-lg prose-h2:text-base prose-h3:text-sm"
+        style={{
+          lineHeight: '1.7',
+          fontSize: '0.95rem'
+        }}
         dangerouslySetInnerHTML={{ __html: rawMarkup }}
       />
     );
@@ -50,7 +85,15 @@ const MessageComponent: React.FC<MessageProps> = ({ message, speakingMessageId, 
       >
         {message.parts.map((part, index) => (
           <div key={index}>
-            {part.text && (isUser ? <p className="whitespace-pre-wrap">{part.text}</p> : renderModelText(part.text))}
+            {part.text && (
+              isUser ? (
+                <p className="whitespace-pre-wrap leading-relaxed">{part.text}</p>
+              ) : (
+                <div className="leading-relaxed">
+                  {renderModelText(part.text)}
+                </div>
+              )
+            )}
             {part.image && (
               <div className="mt-2 flex flex-col gap-2">
                 {part.image.modelTitle && <p className={`font-bold text-sm ${isUser ? 'text-blue-200' : 'text-slate-500 dark:text-slate-400'}`}>{part.image.modelTitle}</p>}

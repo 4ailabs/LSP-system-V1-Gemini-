@@ -4,11 +4,13 @@
 import { GoogleGenAI, Chat, Content } from "@google/genai";
 import { SYSTEM_PROMPT } from '../constants';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
+// Fix: Use Vite environment variables instead of process.env
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+if (!apiKey) {
+  throw new Error("VITE_GEMINI_API_KEY environment variable not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey });
 
 // Fix: Update history parameter to use `Content[]` type.
 export function startChatSession(history?: Content[]): Chat {

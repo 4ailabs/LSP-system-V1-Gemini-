@@ -130,7 +130,19 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log("📁 File selected:", {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
+      
       const { base64, mimeType } = await fileToBase64(file);
+      console.log("🖼️ File converted to base64:", {
+        hasBase64: !!base64,
+        base64Length: base64?.length,
+        mimeType: mimeType
+      });
+      
       setImage({ base64, mimeType });
       setImagePreview(URL.createObjectURL(file));
     }
@@ -139,6 +151,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading || (!text.trim() && !image)) return;
+
+    console.log("📤 Submitting message with:", {
+      text: text.trim(),
+      hasImage: !!image,
+      imageInfo: image ? {
+        hasBase64: !!image.base64,
+        base64Length: image.base64?.length,
+        mimeType: image.mimeType,
+        modelTitle: modelTitle
+      } : null
+    });
 
     onSendMessage(text, image || undefined, modelTitle || undefined);
     

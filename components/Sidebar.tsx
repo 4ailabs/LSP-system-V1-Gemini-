@@ -1,25 +1,19 @@
 
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Session, LspPhase, MessagePart, Message } from '../types';
+import React, { useState } from 'react';
+import { LspPhase, MessagePart, Message } from '../types';
 import { PHASE_DESCRIPTIONS } from '../constants';
-// Fix: Import `EvaluationIcon` to be used for the "Fases" section icon.
-// Fix: Removed `CheckCircle2` as it's not exported from `icons.tsx`. `EvaluationIcon` is the correct component.
 import { 
-    Logo, CopyIcon, PlusIcon, EditIcon, TrashIcon, SaveIcon, CancelIcon, 
+    Logo, CopyIcon, PlusIcon, 
     ChevronDownIcon, GalleryIcon, InsightsIcon, EvaluationIcon
 } from './icons';
 
 interface SidebarProps {
-  sessions: Session[];
-  activeSessionId: string | null;
+  messages: Message[];
+  currentPhase: LspPhase;
   onNewSession: () => void;
-  onSelectSession: (id: string) => void;
-  onDeleteSession: (id: string) => void;
-  onRenameSession: (id: string, newName: string) => void;
   onCopyChat: () => void;
   isCopied: boolean;
-  activeSession: Session | undefined;
 }
 
 const CollapsibleSection: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode }> = ({ title, icon, children }) => {
@@ -38,70 +32,13 @@ const CollapsibleSection: React.FC<{ title: string; icon: React.ReactNode; child
     );
 };
 
-const SessionListItem: React.FC<{
-    session: Session;
-    isActive: boolean;
-    onSelect: () => void;
-    onDelete: () => void;
-    onRename: (newName: string) => void;
-}> = ({ session, isActive, onSelect, onDelete, onRename }) => {
-    const [isEditing, setIsEditing] = useState(false);
-    const [name, setName] = useState(session.name);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        if (isEditing) {
-            inputRef.current?.focus();
-            inputRef.current?.select();
-        }
-    }, [isEditing]);
-
-    const handleRename = () => {
-        if (name.trim()) {
-            onRename(name.trim());
-        }
-        setIsEditing(false);
-    };
-
-    return (
-        <li className={`group flex items-center justify-between text-sm rounded transition-colors ${isActive ? 'bg-slate-700' : 'hover:bg-slate-700/50'}`}>
-            {isEditing ? (
-                <div className="flex items-center w-full p-2">
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        onBlur={handleRename}
-                        onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-                        className="bg-slate-600 text-white rounded px-2 py-1 w-full"
-                    />
-                    <button onClick={handleRename} className="p-1 text-slate-300 hover:text-white"><SaveIcon className="w-4 h-4" /></button>
-                    <button onClick={() => setIsEditing(false)} className="p-1 text-slate-300 hover:text-white"><CancelIcon className="w-4 h-4" /></button>
-                </div>
-            ) : (
-                <button onClick={onSelect} className="flex-1 text-left p-2 truncate">
-                    {session.name}
-                </button>
-            )}
-            {!isEditing && (
-                 <div className="flex items-center pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setIsEditing(true)} className="p-1 text-slate-300 hover:text-white"><EditIcon className="w-4 h-4" /></button>
-                    <button onClick={onDelete} className="p-1 text-slate-300 hover:text-red-500"><TrashIcon className="w-4 h-4" /></button>
-                </div>
-            )}
-        </li>
-    );
-};
-
-
-const Sidebar: React.FC<SidebarProps> = ({ sessions, activeSessionId, onNewSession, onSelectSession, onDeleteSession, onRenameSession, onCopyChat, isCopied, activeSession }) => {
-    const models = activeSession?.messages
+const Sidebar: React.FC<SidebarProps> = ({ messages, currentPhase, onNewSession, onCopyChat, isCopied }) => {
+    const models = messages
         .flatMap(m => m.parts)
         .filter((part): part is MessagePart & { image: NonNullable<MessagePart['image']> } => !!part.image)
-        .map((part, index) => ({ ...part.image, id: `${activeSession.id}-model-${index}` })) || [];
+        .map((part, index) => ({ ...part.image, id: `model-${index}` })) || [];
     
-    const insights = activeSession?.messages.filter(m => m.isInsight) || [];
+    const insights = messages.filter(m => m.isInsight) || [];
 
     return (
     <div className="w-80 h-screen bg-slate-800 text-white p-4 flex flex-col fixed top-0 left-0">
@@ -111,20 +48,14 @@ const Sidebar: React.FC<SidebarProps> = ({ sessions, activeSessionId, onNewSessi
         </div>
       
         <div className="flex-1 overflow-y-auto space-y-4 -mr-2 pr-2">
-            {/* Sessions Section */}
-            <CollapsibleSection title="Mis Sesiones" icon={<PlusIcon className="w-5 h-5"/>}>
-                <ul className="space-y-1">
-                    {sessions.map(session => (
-                        <SessionListItem 
-                            key={session.id}
-                            session={session}
-                            isActive={session.id === activeSessionId}
-                            onSelect={() => onSelectSession(session.id)}
-                            onDelete={() => onDeleteSession(session.id)}
-                            onRename={(newName) => onRenameSession(session.id, newName)}
-                        />
-                    ))}
-                </ul>
+            {/* Single Session Section */}
+            <CollapsibleSection title="Mi Sesión" icon={<PlusIcon className="w-5 h-5"/>}>
+                <div className="p-2 text-sm text-slate-300">
+                    <p>Sesión Única</p>
+                    <p className="text-xs text-slate-400 mt-1">
+                        {messages.length} mensajes
+                    </p>
+                </div>
                 <button onClick={onNewSession} className="w-full flex items-center space-x-2 text-sm mt-2 p-2 rounded text-slate-300 hover:bg-slate-700/50 hover:text-white">
                     <PlusIcon className="w-4 h-4" />
                     <span>Nueva Sesión</span>
@@ -132,13 +63,12 @@ const Sidebar: React.FC<SidebarProps> = ({ sessions, activeSessionId, onNewSessi
             </CollapsibleSection>
 
             {/* Phases Section */}
-            {/* Fix: Replace undefined `CheckCircle2` component with the imported `EvaluationIcon` component. */}
             <CollapsibleSection title="Fases" icon={<EvaluationIcon className="w-5 h-5"/>}>
                  <ul className="space-y-1">
                     {Object.entries(PHASE_DESCRIPTIONS).map(([phase, { title, icon: Icon }]) => {
                         const phaseNum = parseInt(phase, 10) as LspPhase;
-                        const isActive = activeSession?.currentPhase === phaseNum;
-                        const isCompleted = activeSession?.currentPhase ?? 0 > phaseNum;
+                        const isActive = currentPhase === phaseNum;
+                        const isCompleted = currentPhase > phaseNum;
 
                         return (
                         <li key={phase} className={`flex items-center space-x-3 p-2 rounded-lg transition-all duration-200 text-sm ${isActive ? 'bg-slate-700' : ''}`}>

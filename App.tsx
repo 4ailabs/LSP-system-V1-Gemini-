@@ -2,16 +2,16 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import type { Chat } from '@google/genai';
 import { GenerateContentResponse, Part } from '@google/genai';
 import { startChatSession } from './services/geminiService';
-import type { Message, MessagePart, Session } from './types';
+import type { Message, MessagePart } from './types';
 import { Role, LspPhase } from './types';
-import useLocalStorage from './hooks/useLocalStorage';
 import Sidebar from './components/Sidebar';
 import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
 
 const App: React.FC = () => {
-  const [sessions, setSessions] = useLocalStorage<Session[]>('lsp-sessions', []);
-  const [activeSessionId, setActiveSessionId] = useLocalStorage<string | null>('lsp-active-session', null);
+  // Simplificar a una sola sesión
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentPhase, setCurrentPhase] = useState<LspPhase>(LspPhase.IDENTIFICATION);
   
   const chatRef = useRef<Chat | null>(null);
   
@@ -20,88 +20,89 @@ const App: React.FC = () => {
   const [isCopied, setIsCopied] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
+  // Inicializar el chat una sola vez
   useEffect(() => {
-    if (sessions.length === 0) {
-      handleNewSession();
-    } else if (!activeSessionId || !sessions.find(s => s.id === activeSessionId)) {
-      setActiveSessionId(sessions[0]?.id || null);
-    }
+    console.log("🚀 Initializing chat session...");
+    chatRef.current = startChatSession();
+    console.log("✅ Chat session initialized");
+    
+    return () => { 
+      console.log("🧹 Cleaning up speech synthesis");
+      window.speechSynthesis.cancel(); 
+    };
   }, []);
 
-  const activeSession = useMemo(() => sessions.find(s => s.id === activeSessionId), [sessions, activeSessionId]);
 
-  useEffect(() => {
-    const currentSession = sessions.find(s => s.id === activeSessionId);
-
-    if (currentSession) {
-      const geminiHistory = currentSession.messages
-        .filter(m => m.parts.length > 0)
-        .map(msg => ({
-            role: msg.role,
-            parts: msg.parts.map(part => {
-                if (part.text) return { text: part.text };
-                if (part.image) return { inlineData: { data: part.image.base64, mimeType: part.image.mimeType } };
-                return { text: '' };
-            }).filter(p => p.text || p.inlineData) as Part[]
-        }));
-      chatRef.current = startChatSession(geminiHistory);
-    } else {
-      chatRef.current = null;
-    }
-    
-    return () => { window.speechSynthesis.cancel(); };
-  }, [activeSessionId, sessions]);
-  
-  const updateActiveSession = useCallback((updater: (session: Session) => Session) => {
-    if (!activeSessionId) return;
-    setSessions(prev => prev.map(s => s.id === activeSessionId ? updater(s) : s));
-  }, [activeSessionId, setSessions]);
 
   const processStream = useCallback(async (stream: AsyncGenerator<GenerateContentResponse>) => {
     let accumulatedText = '';
     let phaseUpdated = false;
     let finalPhase: LspPhase | null = null;
 
-    for await (const chunk of stream) {
-      accumulatedText += chunk.text;
+    console.log("🔄 Starting stream processing...");
 
-      if (!phaseUpdated) {
-        const phaseUpdateMatch = accumulatedText.match(/\[PHASE_UPDATE: (\d)\]/);
-        if (phaseUpdateMatch) {
-          const phase = parseInt(phaseUpdateMatch[1], 10) as LspPhase;
-          if (Object.values(LspPhase).includes(phase)) {
-            finalPhase = phase;
-            phaseUpdated = true;
+    try {
+      for await (const chunk of stream) {
+        if (chunk.text) {
+          accumulatedText += chunk.text;
+          console.log("📝 Accumulated text length:", accumulatedText.length);
+
+          if (!phaseUpdated) {
+            const phaseUpdateMatch = accumulatedText.match(/\[PHASE_UPDATE: (\d)\]/);
+            if (phaseUpdateMatch) {
+              const phase = parseInt(phaseUpdateMatch[1], 10) as LspPhase;
+              if (Object.values(LspPhase).includes(phase)) {
+                finalPhase = phase;
+                phaseUpdated = true;
+                console.log("🎯 Phase updated to:", phase);
+              }
+            }
+          }
+
+          const textToDisplay = accumulatedText.replace(/\[PHASE_UPDATE: \d\]\s*/g, '');
+          
+          // Update the model message with the accumulated text
+          setMessages(prev => prev.map((msg, index) => {
+            if (index === prev.length - 1 && msg.role === Role.MODEL) {
+              return { ...msg, parts: [{ text: textToDisplay }] };
+            }
+            return msg;
+          }));
+
+          // Update phase if needed
+          if (finalPhase) {
+            setCurrentPhase(finalPhase);
           }
         }
       }
-
-      const textToDisplay = accumulatedText.replace(/\[PHASE_UPDATE: \d\]\s*/g, '');
-
-      updateActiveSession(currentSession => {
-        const updatedMessages = currentSession.messages.map((msg, index) => {
-            if (index === currentSession.messages.length - 1 && msg.role === Role.MODEL) {
-                return { ...msg, parts: [{ text: textToDisplay }] };
-            }
-            return msg;
-        });
-        
-        return {
-          ...currentSession,
-          messages: updatedMessages,
-          ...(finalPhase && { currentPhase: finalPhase }),
-        };
-      });
+      
+      console.log("✅ Stream processing completed successfully");
+      
+    } catch (error) {
+      console.error("❌ Error processing stream:", error);
+      setMessages(prev => prev.map((msg, index) => {
+        if (index === prev.length - 1 && msg.role === Role.MODEL) {
+          return { ...msg, parts: [{ text: "Error al procesar la respuesta. Por favor, intenta de nuevo." }] };
+        }
+        return msg;
+      }));
     }
-  }, [updateActiveSession]);
+  }, []);
 
   const handleSendMessage = async (
     text: string, 
     image?: { base64: string; mimeType: string },
     modelTitle?: string,
+    retryCount: number = 0
     ) => {
+    console.log("🚀 Sending message:", text, retryCount > 0 ? `(retry ${retryCount})` : '');
+    
     const chat = chatRef.current;
-    if (!chat || isLoading || !activeSessionId) return;
+    if (!chat || isLoading) {
+      console.log("❌ Early return:", { chat: !!chat, isLoading });
+      return;
+    }
+    
     window.speechSynthesis.cancel();
     setSpeakingMessageId(null);
 
@@ -118,36 +119,66 @@ const App: React.FC = () => {
     const newUserMessage: Message = { id: Date.now().toString(), role: Role.USER, parts: userMessageParts };
     const modelMessage: Message = { id: (Date.now() + 1).toString(), role: Role.MODEL, parts: [] };
     
-    updateActiveSession(session => ({...session, messages: [...session.messages, newUserMessage, modelMessage] }));
+    console.log("📝 Adding messages to state");
+    setMessages(prev => [...prev, newUserMessage, modelMessage]);
+    
     setIsLoading(true);
 
     try {
+        console.log("🔧 Preparing Gemini parts");
         const geminiParts: Part[] = userMessageParts.map(part => {
           if (part.text) return { text: part.text };
-          if (part.image) return { inlineData: { data: part.image.base64, mimeType: part.image.mimeType }};
+          if (part.image) {
+            console.log("🖼️ Processing image:", {
+              hasBase64: !!part.image.base64,
+              base64Length: part.image.base64?.length,
+              mimeType: part.image.mimeType,
+              modelTitle: part.image.modelTitle
+            });
+            return { inlineData: { data: part.image.base64, mimeType: part.image.mimeType }};
+          }
           return { text: "" }; 
         }).filter(part => (part.text !== undefined && part.text !== "") || part.inlineData);
         
+        console.log("📤 Sending message to Gemini with parts:", geminiParts);
         const stream = await chat.sendMessageStream({ message: geminiParts });
+        console.log("📥 Stream received, processing...");
         await processStream(stream);
 
     } catch (error) {
-      console.error("Error sending message:", error);
-      // CRITICAL FIX: Use immutable update pattern in the catch block.
-      // This prevents state corruption on API errors.
-      updateActiveSession(session => {
-        const updatedMessages = session.messages.map((msg, index) => {
-          if (index === session.messages.length - 1 && msg.role === Role.MODEL) {
-            return {
-              ...msg,
-              parts: [{ text: "Lo siento, hubo un problema al procesar tu solicitud." }]
-            };
-          }
-          return msg;
-        });
-        return { ...session, messages: updatedMessages };
-      });
+      console.error("❌ Error sending message:", error);
+      
+      // Determinar el tipo de error y mostrar mensaje apropiado
+      let errorMessage = "Lo siento, hubo un problema al procesar tu solicitud.";
+      let shouldRetry = false;
+      
+      if (error instanceof Error) {
+        if (error.message.includes("Load failed") && retryCount < 2) {
+          errorMessage = "Error de conexión. Reintentando...";
+          shouldRetry = true;
+        } else if (error.message.includes("rate limit")) {
+          errorMessage = "Demasiadas solicitudes. Espera un momento e intenta de nuevo.";
+        } else if (error.message.includes("quota")) {
+          errorMessage = "Límite de API alcanzado. Intenta más tarde.";
+        }
+      }
+      
+      if (shouldRetry) {
+        console.log("🔄 Retrying in 2 seconds...");
+        setTimeout(() => {
+          handleSendMessage(text, image, modelTitle, retryCount + 1);
+        }, 2000);
+        return;
+      }
+      
+      setMessages(prev => prev.map((msg, index) => {
+        if (index === prev.length - 1 && msg.role === Role.MODEL) {
+          return { ...msg, parts: [{ text: errorMessage }] };
+        }
+        return msg;
+      }));
     } finally {
+      console.log("✅ Message processing completed");
       setIsLoading(false);
     }
   };
@@ -170,8 +201,7 @@ const App: React.FC = () => {
   }, [speakingMessageId]);
   
   const handleCopyChat = useCallback(() => {
-    if (!activeSession) return;
-      const chatText = activeSession.messages.map(msg => {
+    const chatText = messages.map(msg => {
           const prefix = msg.role === Role.USER ? '[Usuario]' : '[Facilitador]';
           const content = msg.parts.map(part => {
               if (part.text) return part.text;
@@ -185,7 +215,7 @@ const App: React.FC = () => {
           setIsCopied(true);
           setTimeout(() => setIsCopied(false), 2000);
       });
-  }, [activeSession]);
+  }, [messages]);
 
   const handleCopyMessage = useCallback((message: Message) => {
     const textToCopy = message.parts.map(p => p.text).filter(Boolean).join('\n');
@@ -197,57 +227,29 @@ const App: React.FC = () => {
   }, []);
 
   const handleNewSession = useCallback(() => {
-    const newSession: Session = {
-      id: Date.now().toString(),
-      name: `Sesión ${new Date().toLocaleString()}`,
-      messages: [],
-      currentPhase: LspPhase.IDENTIFICATION,
-      createdAt: Date.now(),
-    };
-    setSessions(prev => [newSession, ...prev]);
-    setActiveSessionId(newSession.id);
-  }, [setSessions, setActiveSessionId]);
-  
-  const handleSelectSession = (id: string) => setActiveSessionId(id);
+    console.log("🆕 Creating new session...");
+    setMessages([]);
+    setCurrentPhase(LspPhase.IDENTIFICATION);
+    console.log("🆕 Session reset completed");
+  }, []);
 
-  const handleDeleteSession = (id: string) => {
-    setSessions(prev => {
-      const remainingSessions = prev.filter(s => s.id !== id);
-      if (activeSessionId === id) {
-        setActiveSessionId(remainingSessions[0]?.id || null);
-      }
-      return remainingSessions;
-    });
-  };
-
-  const handleRenameSession = (id: string, newName: string) => {
-    setSessions(prev => prev.map(s => s.id === id ? {...s, name: newName} : s));
-  };
-  
   const handleToggleInsight = (messageId: string) => {
-    updateActiveSession(session => ({
-      ...session,
-      messages: session.messages.map(m => m.id === messageId ? {...m, isInsight: !m.isInsight} : m)
-    }));
+    setMessages(prev => prev.map(m => m.id === messageId ? {...m, isInsight: !m.isInsight} : m));
   };
 
   return (
     <div className="h-screen w-screen flex font-sans bg-slate-100 dark:bg-slate-900">
       <Sidebar 
-        sessions={sessions}
-        activeSessionId={activeSessionId}
+        messages={messages}
+        currentPhase={currentPhase}
         onNewSession={handleNewSession}
-        onSelectSession={handleSelectSession}
-        onDeleteSession={handleDeleteSession}
-        onRenameSession={handleRenameSession}
         onCopyChat={handleCopyChat}
         isCopied={isCopied}
-        activeSession={activeSession}
       />
       <main className="flex-1 flex flex-col pl-80 h-screen">
           <ChatWindow 
-            key={activeSessionId} // Re-mount component on session change
-            messages={activeSession?.messages || []} 
+            key={'single-session'} // Re-mount component on session change
+            messages={messages} 
             isLoading={isLoading} 
             speakingMessageId={speakingMessageId}
             onToggleSpeech={handleToggleSpeech}
