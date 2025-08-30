@@ -18,22 +18,22 @@ interface ChatWindowProps {
 }
 
 const WelcomeScreen = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center max-w-2xl mx-auto px-4 sm:px-6">
-        <div className="mb-8">
+    <div className="flex flex-col items-center justify-center h-full text-center max-w-3xl mx-auto px-6 sm:px-8">
+        <div className="mb-12">
             <Logo />
         </div>
         
-        <div className="space-y-6">
+        <div className="space-y-8">
             <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-white mb-3">
+                <h1 className="text-4xl sm:text-5xl font-bold text-slate-800 dark:text-white mb-6">
                     Bienvenido al LSP Insight System
                 </h1>
-                <p className="text-lg sm:text-xl text-slate-600 dark:text-white leading-relaxed">
+                <p className="text-xl sm:text-2xl text-slate-600 dark:text-white leading-relaxed font-medium">
                     Tu facilitador especializado en LEGO® Serious Play®
                 </p>
             </div>
             
-            <p className="text-lg text-slate-700 dark:text-white leading-relaxed max-w-lg">
+            <p className="text-lg sm:text-xl text-slate-700 dark:text-white leading-relaxed max-w-2xl">
                 Estoy aquí para guiarte en tu sesión de descubrimiento y reflexión profunda. 
                 Para comenzar, cuéntame un poco sobre el tema que te gustaría explorar hoy.
             </p>
@@ -60,9 +60,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   return (
     <div
       ref={scrollRef}
-      className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-white dark:bg-slate-900"
+      className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-white dark:bg-slate-900"
     >
-      <div className="max-w-4xl mx-auto h-full">
+      <div className="max-w-5xl mx-auto h-full">
         {messages.length === 0 && !isLoading ? (
             <WelcomeScreen />
         ) : (
@@ -81,12 +81,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
 
         {isLoading && messages[messages.length - 1]?.role === 'user' && (
-          <div className="flex items-start gap-3 sm:gap-4 my-4 sm:my-6">
+          <div className="flex items-start gap-4 sm:gap-6 my-6 sm:my-8">
               <div className="w-8 h-8 flex-shrink-0" />
-              <div className="p-3 sm:p-4 rounded-2xl max-w-lg bg-white dark:bg-slate-800 rounded-bl-none flex items-center space-x-2 shadow-md border border-slate-200 dark:border-slate-600">
-                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse"></div>
-                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="p-4 sm:p-6 rounded-2xl max-w-lg bg-white dark:bg-slate-800 rounded-bl-none flex items-center space-x-3 shadow-md border border-slate-200 dark:border-slate-600">
+                  <div className="w-3 h-3 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse"></div>
+                  <div className="w-3 h-3 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-3 h-3 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
               </div>
           </div>
         )}

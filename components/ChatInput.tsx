@@ -191,11 +191,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   }, [text]);
 
   return (
-    <div className="bg-white dark:bg-slate-800 px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-slate-200 dark:border-slate-600">
-      <div className="max-w-4xl mx-auto">
+    <div className="bg-white dark:bg-slate-800 px-4 sm:px-6 md:px-8 py-4 sm:py-6 border-t border-slate-200 dark:border-slate-600">
+      <div className="max-w-5xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
           {imagePreview && (
-            <div className="p-3 sm:p-4 bg-white dark:bg-slate-700 rounded-t-2xl flex flex-col sm:flex-row gap-3 sm:gap-4 items-start border border-slate-200 dark:border-slate-600 shadow-sm">
+            <div className="p-4 sm:p-6 bg-white dark:bg-slate-700 rounded-t-2xl flex flex-col sm:flex-row gap-4 sm:gap-6 items-start border border-slate-200 dark:border-slate-600 shadow-sm mb-4">
                 <div className="relative w-20 h-20 sm:w-24 sm:h-24 p-1 border-2 border-slate-300 dark:border-slate-500 rounded-md bg-white dark:bg-slate-600 flex-shrink-0">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded" />
                   <button
@@ -218,7 +218,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
                 </div>
             </div>
           )}
-          <div className={`flex items-end p-3 sm:p-4 bg-white dark:bg-slate-700 shadow-md border border-slate-200 dark:border-slate-600 ${imagePreview ? 'rounded-b-2xl' : 'rounded-2xl'}`}>
+          <div className={`flex items-end p-4 sm:p-6 bg-white dark:bg-slate-700 shadow-md border border-slate-200 dark:border-slate-600 ${imagePreview ? 'rounded-b-2xl' : 'rounded-2xl'}`}>
             <input
               type="file"
               ref={fileInputRef}
@@ -229,7 +229,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-2 sm:p-2.5 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors"
+              className="p-2.5 sm:p-3 text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400 transition-colors"
               disabled={isLoading || isListening}
               aria-label="Attach file"
             >
@@ -238,14 +238,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
             <button
               type="button"
               onClick={handleMicClick}
-              className={`p-2 sm:p-2.5 ${isListening ? 'text-red-500 animate-pulse' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400'} transition-colors`}
+              className={`p-2.5 sm:p-3 ${isListening ? 'text-red-500 animate-pulse' : 'text-slate-600 hover:text-blue-600 dark:text-slate-300 dark:hover:text-blue-400'} transition-colors`}
               disabled={isLoading}
               aria-label={isListening ? 'Stop listening' : 'Start listening'}
             >
               {isListening ? <StopCircleIcon /> : <MicrophoneIcon />}
             </button>
             {isListening ? (
-                <div className="px-4 py-3 text-slate-600 dark:text-slate-300 text-base w-full flex-1 font-medium">
+                <div className="px-6 py-4 text-slate-600 dark:text-slate-300 text-base w-full flex-1 font-medium">
                     Escuchando...
                 </div>
             ) : (
@@ -255,14 +255,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
                     onChange={handleInput}
                     onKeyDown={handleKeyDown}
                     placeholder="Escribe tu mensaje o describe tu modelo..."
-                    className="flex-1 bg-transparent px-4 py-3 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none resize-none max-h-32 text-sm font-medium leading-relaxed"
+                    className="flex-1 bg-transparent px-6 py-4 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none resize-none max-h-32 text-sm font-medium leading-relaxed"
                     rows={1}
                     disabled={isLoading}
                 />
             )}
             <button
               type="submit"
-              className="p-2 sm:p-2.5 rounded-full text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 shadow-md"
+              className="p-2.5 sm:p-3 rounded-full text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-blue-600 hover:bg-blue-700 shadow-md"
               disabled={isLoading || (!text.trim() && !image)}
               aria-label="Send message"
             >

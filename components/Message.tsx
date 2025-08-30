@@ -35,13 +35,13 @@ const MessageComponent: React.FC<MessageProps> = ({
   );
 
   return (
-    <div className="group flex items-start gap-4 my-6">
+    <div className="group flex items-start gap-6 my-8">
       {isUser ? (
         // Mensaje del usuario - alineado a la derecha
         <>
           <div className="flex-1" />
           <div className="max-w-3xl text-right">
-            <p className="text-slate-800 dark:text-white leading-relaxed text-base">{message.content}</p>
+            <p className="text-slate-800 dark:text-white leading-relaxed text-base font-medium">{message.content}</p>
           </div>
           <UserIcon />
         </>
@@ -49,13 +49,14 @@ const MessageComponent: React.FC<MessageProps> = ({
         // Respuesta de la IA - alineada a la izquierda
         <>
           <div className="w-8 h-8 flex-shrink-0" />
-          <div className="max-w-3xl">
+          <div className="max-w-4xl">
             <div className="text-slate-800 dark:text-white max-w-none">
               <div
                 style={{
-                  lineHeight: '1.6',
+                  lineHeight: '1.8',
                   fontSize: '1rem'
                 }}
+                className="prose prose-sm dark:prose-invert max-w-none"
                 dangerouslySetInnerHTML={{ __html: marked.parse(message.content || '') }}
               />
             </div>
@@ -65,7 +66,7 @@ const MessageComponent: React.FC<MessageProps> = ({
       )}
       
       {/* Botones de acción */}
-      <div className="flex flex-col items-center self-center space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex flex-col items-center self-center space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={() => onToggleInsight(message.id)}
           className={`text-slate-400 hover:text-yellow-500 ${isInsight ? 'text-yellow-500' : ''} transition-colors`}
