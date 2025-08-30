@@ -41,7 +41,14 @@ const MessageComponent: React.FC<MessageProps> = ({
         <>
           <div className="flex-1" />
           <div className="max-w-3xl text-right">
-            <p className="text-slate-800 dark:text-white leading-relaxed text-base font-medium">{message.content}</p>
+            <p 
+              style={{
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}
+              className="text-slate-800 dark:text-white leading-relaxed text-base font-medium"
+            >
+              {message.content}
+            </p>
           </div>
           <UserIcon />
         </>
@@ -54,44 +61,43 @@ const MessageComponent: React.FC<MessageProps> = ({
               <div
                 style={{
                   lineHeight: '1.8',
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
                 className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-slate-800 prose-headings:dark:text-white prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:text-slate-700 prose-p:dark:text-slate-300 prose-strong:text-slate-800 prose-strong:dark:text-white prose-strong:font-semibold prose-ul:my-2 prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-slate-600 prose-blockquote:dark:text-slate-400"
                 dangerouslySetInnerHTML={{ __html: marked.parse(message.content || '') }}
               />
+              
+              {/* Iconos de acción abajo del texto generado */}
+              <div className="flex items-center space-x-4 mt-6 opacity-80 hover:opacity-100 transition-opacity">
+                <button
+                  onClick={() => onToggleInsight(message.id)}
+                  className={`text-slate-400 hover:text-yellow-500 ${isInsight ? 'text-yellow-500' : ''} transition-colors`}
+                  aria-label={isInsight ? 'Remove from insights' : 'Add to insights'}
+                >
+                  <Star className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onCopyMessage(message)}
+                  className={`text-slate-400 hover:text-slate-600 ${isCopied ? 'opacity-100' : ''} transition-colors`}
+                  aria-label={isCopied ? 'Copied!' : 'Copy message'}
+                  disabled={isCopied}
+                >
+                  {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => onToggleSpeech(message)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                  aria-label={isSpeaking ? 'Pause reading' : 'Read message aloud'}
+                >
+                  {isSpeaking ? <PauseCircle className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
           <div className="flex-1" />
         </>
       )}
-      
-      {/* Botones de acción */}
-      <div className="flex flex-col items-center self-center space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={() => onToggleInsight(message.id)}
-          className={`text-slate-400 hover:text-yellow-500 ${isInsight ? 'text-yellow-500' : ''} transition-colors`}
-          aria-label={isInsight ? 'Remove from insights' : 'Add to insights'}
-        >
-          <Star className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onCopyMessage(message)}
-          className={`text-slate-400 hover:text-slate-600 ${isCopied ? 'opacity-100' : ''} transition-colors`}
-          aria-label={isCopied ? 'Copied!' : 'Copy message'}
-          disabled={isCopied}
-        >
-          {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-        </button>
-        {!isUser && (
-            <button
-              onClick={() => onToggleSpeech(message)}
-              className="text-slate-400 hover:text-slate-600 transition-colors"
-              aria-label={isSpeaking ? 'Pause reading' : 'Read message aloud'}
-            >
-            {isSpeaking ? <PauseCircle className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-        )}
-      </div>
     </div>
   );
 };

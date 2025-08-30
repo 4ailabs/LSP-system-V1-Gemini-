@@ -64,6 +64,9 @@ const App: React.FC = () => {
     const updates: LspPhase[] = [];
     
     // Buscar patrones de cambio de fase en el texto
+    if (text.includes('Fase 1') || text.includes('Identificación') || text.includes('Contextualización')) {
+      updates.push(LspPhase.IDENTIFICATION);
+    }
     if (text.includes('Fase 2') || text.includes('Protocolo')) {
       updates.push(LspPhase.PROTOCOL_DEVELOPMENT);
     }
