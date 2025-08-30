@@ -18,22 +18,22 @@ interface ChatWindowProps {
 }
 
 const WelcomeScreen = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center max-w-3xl mx-auto px-6 sm:px-8">
-        <div className="mb-12">
+    <div className="flex flex-col items-center justify-center h-full text-center max-w-2xl mx-auto px-4 sm:px-6">
+        <div className="mb-8">
             <Logo />
         </div>
         
-        <div className="space-y-8">
+        <div className="space-y-6">
             <div>
-                <h1 className="text-4xl sm:text-5xl font-bold text-slate-800 dark:text-white mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-4">
                     Bienvenido al LSP Insight System
                 </h1>
-                <p className="text-xl sm:text-2xl text-slate-600 dark:text-white leading-relaxed font-medium">
+                <p className="text-lg sm:text-xl text-slate-600 dark:text-white leading-relaxed font-medium">
                     Tu facilitador especializado en LEGO® Serious Play®
                 </p>
             </div>
             
-            <p className="text-lg sm:text-xl text-slate-700 dark:text-white leading-relaxed max-w-2xl">
+            <p className="text-base sm:text-lg text-slate-700 dark:text-white leading-relaxed max-w-lg">
                 Estoy aquí para guiarte en tu sesión de descubrimiento y reflexión profunda. 
                 Para comenzar, cuéntame un poco sobre el tema que te gustaría explorar hoy.
             </p>
