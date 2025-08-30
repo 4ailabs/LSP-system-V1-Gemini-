@@ -66,18 +66,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {messages.length === 0 && !isLoading ? (
             <WelcomeScreen />
         ) : (
-            messages.map((msg) => (
-                <MessageComponent 
-                  key={msg.id} 
-                  message={msg}
-                  isInsight={msg.isInsight}
-                  isCopied={false}
-                  isSpeaking={false}
-                  onToggleInsight={onToggleInsight}
-                  onCopyMessage={onCopyMessage}
-                  onToggleSpeech={onToggleSpeech}
-                />
-            ))
+            <>
+              {messages.map((msg) => (
+                  <MessageComponent 
+                    key={msg.id} 
+                    message={msg}
+                    isInsight={msg.isInsight}
+                    isCopied={false}
+                    isSpeaking={false}
+                    onToggleInsight={onToggleInsight}
+                    onCopyMessage={onCopyMessage}
+                    onToggleSpeech={onToggleSpeech}
+                  />
+              ))}
+              {/* Espacio al final para mejor visualización y scroll */}
+              <div className="h-20 sm:h-24 md:h-32"></div>
+            </>
         )}
 
         {isLoading && messages[messages.length - 1]?.role === 'user' && (
