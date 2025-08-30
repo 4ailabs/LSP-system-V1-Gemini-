@@ -64,6 +64,7 @@ const App: React.FC = () => {
     const updates: LspPhase[] = [];
     
     // Buscar patrones de cambio de fase en el texto
+
     if (text.includes('Fase 1') || text.includes('Identificación') || text.includes('Contextualización')) {
       updates.push(LspPhase.IDENTIFICATION);
     }
@@ -274,8 +275,19 @@ const App: React.FC = () => {
   // Copiar mensaje individual
   const handleCopyMessage = useCallback(async (message: any) => {
     try {
-      await navigator.clipboard.writeText(message.content);
-      console.log('Message copied:', message.content);
+      // Limpiar el contenido de markdown antes de copiar
+      const cleanContent = message.content
+        .replace(/\[PHASE_UPDATE:\s*\d+\]/g, '') // Remover comandos de fase
+        .replace(/\[.*?\]/g, '') // Remover otros comandos técnicos
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remover **bold** markdown
+        .replace(/\*(.*?)\*/g, '$1') // Remover *italic* markdown
+        .replace(/^#+\s*/gm, '') // Remover headers markdown
+        .replace(/^[-*+]\s*/gm, '• ') // Convertir listas markdown a viñetas
+        .replace(/^\d+\.\s*/gm, '• ') // Convertir listas numeradas a viñetas
+        .trim();
+      
+      await navigator.clipboard.writeText(cleanContent);
+      console.log('Message copied (cleaned):', cleanContent);
     } catch (error) {
       console.error('Error copying message:', error);
     }

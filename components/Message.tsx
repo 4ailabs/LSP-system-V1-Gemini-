@@ -64,8 +64,28 @@ const MessageComponent: React.FC<MessageProps> = ({
                   fontSize: '1rem',
                   fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}
-                className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-slate-800 prose-headings:dark:text-white prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:text-slate-700 prose-p:dark:text-slate-300 prose-strong:text-slate-800 prose-strong:dark:text-white prose-strong:font-semibold prose-ul:my-2 prose-li:my-1 prose-ol:my-2 prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-slate-600 prose-blockquote:dark:text-slate-400"
-                dangerouslySetInnerHTML={{ __html: marked.parse(message.content || '', { breaks: true, gfm: true }) }}
+                className="max-w-none"
+                dangerouslySetInnerHTML={{ 
+                  __html: (() => {
+                    const parsed = marked.parse(message.content || '', { 
+                      breaks: true, 
+                      gfm: true 
+                    });
+                    if (typeof parsed === 'string') {
+                      return parsed.replace(
+                        /<ol>/g, 
+                        '<ol class="custom-list" style="list-style-type: decimal; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">'
+                      ).replace(
+                        /<ul>/g, 
+                        '<ul class="custom-bullet" style="list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem;">'
+                      ).replace(
+                        /<li>/g, 
+                        '<li style="margin-bottom: 0.25rem; line-height: 1.6;">'
+                      );
+                    }
+                    return message.content || '';
+                  })()
+                }}
               />
               
               {/* Iconos de acción abajo del texto generado */}
