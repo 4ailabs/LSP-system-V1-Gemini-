@@ -6,12 +6,14 @@ Un sistema inteligente para facilitar sesiones de LEGO® Serious Play® utilizan
 
 Este proyecto está configurado para desplegarse automáticamente en Vercel. Cada push al branch `main` activará un nuevo despliegue.
 
+**✅ Repositorio público** - Compatible con Vercel gratuito
+
 ### Configuración de Variables de Entorno
 
 Para que funcione correctamente, configura estas variables en Vercel:
 
 ```env
-GEMINI_API_KEY=tu_api_key_de_gemini_aqui
+VITE_GEMINI_API_KEY=tu_api_key_de_gemini_aqui
 ```
 
 ## ✨ Características
@@ -47,4 +49,4 @@ GEMINI_API_KEY=tu_api_key_de_gemini_aqui
 
 ---
 
-**Última actualización**: $(date)
+**Última actualización**: $(date) - Repositorio público para Vercel
