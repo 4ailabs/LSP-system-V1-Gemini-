@@ -18,88 +18,39 @@ interface ChatWindowProps {
 }
 
 const WelcomeScreen = () => (
-    <div className="flex flex-col items-center justify-center h-full text-center max-w-3xl mx-auto px-4 sm:px-6">
-        <div className="mb-8">
+    <div className="flex flex-col items-center justify-center h-full text-center max-w-lg mx-auto px-4">
+        <div className="mb-6">
             <Logo />
         </div>
         
-        <div className="space-y-8">
+        <div className="space-y-4">
             {/* Título Principal */}
             <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-white mb-6">
+                <h1 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
                     LSP Insight System
                 </h1>
-                <p className="text-lg sm:text-xl text-slate-600 dark:text-white leading-relaxed font-medium">
+                <p className="text-sm text-slate-600 dark:text-white">
                     Facilitador LEGO® Serious Play®
                 </p>
             </div>
             
-            {/* Descripción Estructurada */}
-            <div className="text-left space-y-6">
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-6 border border-slate-200 dark:border-slate-600 shadow-sm">
-                    <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4 flex items-center">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full mr-3"></span>
-                        ¿Qué es LEGO® Serious Play®?
-                    </h2>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
-                        Una metodología innovadora que utiliza bricks LEGO® para facilitar la reflexión, 
-                        comunicación y resolución de problemas en entornos profesionales y personales.
-                    </p>
-                    <ul className="space-y-2 text-slate-600 dark:text-slate-400">
-                        <li className="flex items-start">
-                            <span className="text-blue-500 mr-2">•</span>
-                            <span>Exploración profunda de ideas y desafíos</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="text-blue-500 mr-2">•</span>
-                            <span>Comunicación efectiva a través de modelos 3D</span>
-                        </li>
-                        <li className="flex items-start">
-                            <span className="text-blue-500 mr-2">•</span>
-                            <span>Generación de insights y soluciones creativas</span>
-                        </li>
-                    </ul>
+            {/* Descripción Simple */}
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-600">
+                <p className="text-sm text-slate-700 dark:text-slate-300 mb-3">
+                    Te guiaré a través de un proceso estructurado para explorar ideas usando bricks LEGO®.
+                </p>
+                
+                <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1">
+                    <div>• Identificamos el tema a explorar</div>
+                    <div>• Construimos modelos con bricks</div>
+                    <div>• Reflexionamos y compartimos insights</div>
+                    <div>• Planificamos próximos pasos</div>
                 </div>
+            </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-6 border border-slate-200 dark:border-slate-600 shadow-sm">
-                    <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4 flex items-center">
-                        <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                        ¿Cómo funciona?
-                    </h2>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
-                        Te guiaré a través de un proceso estructurado donde construirás modelos 
-                        que representen tus ideas y descubrirás nuevas perspectivas.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                        <div className="bg-slate-50 dark:bg-slate-700 p-3 rounded-md">
-                            <h3 className="font-medium text-slate-800 dark:text-white mb-2">1. Identificación</h3>
-                            <p className="text-slate-600 dark:text-slate-400">Define el tema a explorar</p>
-                        </div>
-                        <div className="bg-slate-50 dark:bg-slate-700 p-3 rounded-md">
-                            <h3 className="font-medium text-slate-800 dark:text-white mb-2">2. Construcción</h3>
-                            <p className="text-slate-600 dark:text-slate-400">Crea modelos con bricks</p>
-                        </div>
-                        <div className="bg-slate-50 dark:bg-slate-700 p-3 rounded-md">
-                            <h3 className="font-medium text-slate-800 dark:text-white mb-2">3. Reflexión</h3>
-                            <p className="text-slate-600 dark:text-slate-400">Analiza y comparte insights</p>
-                        </div>
-                        <div className="bg-slate-50 dark:bg-slate-700 p-3 rounded-md">
-                            <h3 className="font-medium text-slate-800 dark:text-white mb-2">4. Acción</h3>
-                            <p className="text-slate-600 dark:text-slate-400">Planea próximos pasos</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white dark:bg-slate-800 rounded-lg p-6 border border-slate-200 dark:border-slate-600 shadow-sm">
-                    <h2 className="text-xl font-semibold text-slate-800 dark:text-white mb-4 flex items-center">
-                        <span className="w-2 h-2 bg-purple-500 rounded-full mr-3"></span>
-                        Comencemos
-                    </h2>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                        Para empezar, cuéntame un poco sobre el tema que te gustaría explorar hoy. 
-                        ¿Hay alguna pregunta específica o desafío que te gustaría abordar?
-                    </p>
-                </div>
+            {/* Llamada a la acción */}
+            <div className="text-sm text-slate-600 dark:text-slate-400">
+                <p>¿Qué tema te gustaría explorar hoy?</p>
             </div>
         </div>
     </div>
