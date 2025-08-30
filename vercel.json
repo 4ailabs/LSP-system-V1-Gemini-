@@ -1,15 +1,33 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "installCommand": "npm install --legacy-peer-deps",
-  "devCommand": "npm run dev",
+  "name": "lsp-insight-system",
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_GEMINI_API_KEY": "@gemini-api-key"
+  },
   "functions": {
-    "api/**/*.ts": {
+    "app/api/**/*.ts": {
       "runtime": "nodejs18.x"
     }
   },
-  "env": {
-    "VITE_GEMINI_API_KEY": "@gemini-api-key"
+  "regions": ["iad1"],
+  "public": true,
+  "github": {
+    "silent": false,
+    "autoAlias": true
   }
 }
