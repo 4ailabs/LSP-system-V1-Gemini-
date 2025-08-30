@@ -63,24 +63,67 @@ const App: React.FC = () => {
   const extractPhaseUpdates = useCallback((text: string): LspPhase[] => {
     const updates: LspPhase[] = [];
     
-    // Buscar patrones de cambio de fase en el texto
-
-    if (text.includes('Fase 1') || text.includes('Identificación') || text.includes('Contextualización')) {
+    // Buscar patrones más inteligentes de cambio de fase en el texto
+    const lowerText = text.toLowerCase();
+    
+    // Fase 1: Identificación y Contextualización
+    if (lowerText.includes('fase 1') || 
+        lowerText.includes('identificación') || 
+        lowerText.includes('contextualización') ||
+        lowerText.includes('nombre del usuario') ||
+        lowerText.includes('objetivo central') ||
+        lowerText.includes('tema específico')) {
       updates.push(LspPhase.IDENTIFICATION);
     }
-    if (text.includes('Fase 2') || text.includes('Protocolo')) {
+    
+    // Fase 2: Desarrollo de Protocolos
+    if (lowerText.includes('fase 2') || 
+        lowerText.includes('protocolo') ||
+        lowerText.includes('diseñar protocolo') ||
+        lowerText.includes('número de modelos') ||
+        lowerText.includes('secuencia lógica') ||
+        lowerText.includes('tiempos asignados')) {
       updates.push(LspPhase.PROTOCOL_DEVELOPMENT);
     }
-    if (text.includes('Fase 3') || text.includes('Implementación')) {
+    
+    // Fase 3: Implementación LSP
+    if (lowerText.includes('fase 3') || 
+        lowerText.includes('implementación') ||
+        lowerText.includes('construcción') ||
+        lowerText.includes('construir modelo') ||
+        lowerText.includes('pensar con las manos') ||
+        lowerText.includes('modelo 3d')) {
       updates.push(LspPhase.IMPLEMENTATION);
     }
-    if (text.includes('Fase 4') || text.includes('Insights')) {
+    
+    // Fase 4: Descubrimiento de Insights
+    if (lowerText.includes('fase 4') || 
+        lowerText.includes('insights') ||
+        lowerText.includes('descubrimiento') ||
+        lowerText.includes('analizar modelo') ||
+        lowerText.includes('metáforas') ||
+        lowerText.includes('significado personal')) {
       updates.push(LspPhase.INSIGHT_DISCOVERY);
     }
-    if (text.includes('Fase 5') || text.includes('Estrategia')) {
+    
+    // Fase 5: Desarrollo de Estrategias
+    if (lowerText.includes('fase 5') || 
+        lowerText.includes('estrategia') ||
+        lowerText.includes('plan de acción') ||
+        lowerText.includes('próximos pasos') ||
+        lowerText.includes('micro-hábitos') ||
+        lowerText.includes('cambios de comportamiento')) {
       updates.push(LspPhase.STRATEGY_DEVELOPMENT);
     }
-    if (text.includes('Fase 6') || text.includes('Evaluación')) {
+    
+    // Fase 6: Evaluación y Análisis
+    if (lowerText.includes('fase 6') || 
+        lowerText.includes('evaluación') ||
+        lowerText.includes('conclusión') ||
+        lowerText.includes('resumen final') ||
+        lowerText.includes('sesión concluida') ||
+        lowerText.includes('cerrar proceso') ||
+        lowerText.includes('finalizar sesión')) {
       updates.push(LspPhase.EVALUATION);
     }
     
@@ -100,6 +143,27 @@ const App: React.FC = () => {
       .trim();
   }, []);
 
+  // Detectar si la sesión ha concluido
+  const detectSessionConclusion = useCallback((text: string): boolean => {
+    const lowerText = text.toLowerCase();
+    
+    // Patrones que indican que la sesión ha concluido
+    const conclusionPatterns = [
+      'con esto concluimos',
+      'sesión concluida',
+      'finalizar sesión',
+      'hemos terminado',
+      'conclusión de la sesión',
+      'resumen final',
+      'cerrar proceso',
+      'última fase',
+      'evaluación final',
+      'proceso completado'
+    ];
+    
+    return conclusionPatterns.some(pattern => lowerText.includes(pattern));
+  }, []);
+
   // Procesar respuesta streaming de Gemini
   const processStream = useCallback(async (responseText: string, sessionId: string) => {
     try {
@@ -114,6 +178,10 @@ const App: React.FC = () => {
       const phaseUpdates = extractPhaseUpdates(responseText);
       console.log('📈 Actualizaciones de fase detectadas:', phaseUpdates);
       
+      // Detectar si la sesión ha concluido
+      const isSessionConcluded = detectSessionConclusion(responseText);
+      console.log('🏁 Sesión concluida detectada:', isSessionConcluded);
+      
       // Agregar respuesta limpia del modelo a la base de datos
       const modelMessage = await addMessage(cleanText, 'model', sessionId);
       console.log('✅ Mensaje del modelo agregado:', modelMessage);
@@ -127,12 +195,19 @@ const App: React.FC = () => {
         console.log('🔄 Fase actualizada a:', newPhase);
       }
       
+      // Si la sesión concluyó, asegurar que esté en la fase final
+      if (isSessionConcluded && currentPhase !== LspPhase.EVALUATION) {
+        await updatePhase(sessionId, LspPhase.EVALUATION);
+        setCurrentPhase(LspPhase.EVALUATION);
+        console.log('🏁 Fase actualizada a EVALUACIÓN (sesión concluida)');
+      }
+      
       console.log('🏁 === FIN PROCESAMIENTO STREAM ===');
 
     } catch (error) {
       console.error('❌ Error processing stream:', error);
     }
-  }, [addMessage, updatePhase, cleanGeminiResponse, extractPhaseUpdates, messages]);
+  }, [addMessage, updatePhase, cleanGeminiResponse, extractPhaseUpdates, detectSessionConclusion, currentPhase, messages]);
 
   // Función para enviar mensaje
   const handleSendMessage = useCallback(async (content: string, imageData?: string, retryCount = 0) => {
