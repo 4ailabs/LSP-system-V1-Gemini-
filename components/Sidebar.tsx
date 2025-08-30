@@ -234,6 +234,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Powered by Gemini AI
             </p>
+            <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                Powered by <span className="text-blue-600 dark:text-blue-400 font-semibold">4ailabs</span>
+              </p>
+            </div>
           </div>
         </div>
       </div>
