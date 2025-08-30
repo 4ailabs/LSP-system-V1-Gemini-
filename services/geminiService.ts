@@ -1,25 +1,38 @@
+// Servicio simplificado para Gemini API
+// En producción, esto se conectará a la API real
 
-
-// Fix: Import `Content` type for chat history and remove deprecated `StartChatParams`.
-import { GoogleGenAI, Chat, Content } from "@google/genai";
-import { SYSTEM_PROMPT } from '../constants';
-
-// Fix: Use Vite environment variables instead of process.env
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-if (!apiKey) {
-  throw new Error("VITE_GEMINI_API_KEY environment variable not set");
+export interface ChatMessage {
+  role: 'user' | 'model';
+  content: string;
 }
 
-const ai = new GoogleGenAI({ apiKey });
-
-// Fix: Update history parameter to use `Content[]` type.
-export function startChatSession(history?: Content[]): Chat {
-  const chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-    },
-    history: history || [],
-  });
-  return chat;
+export interface ChatResponse {
+  text: string;
 }
+
+// Simulación de la API de Gemini para desarrollo
+export const startChatSession = () => {
+  let messageHistory: ChatMessage[] = [];
+  
+  return {
+    sendMessageStream: async (message: { message: string }) => {
+      // Simular respuesta de Gemini
+      const response = `¡Hola! Soy tu facilitador de LEGO® Serious Play®. He recibido tu mensaje: "${message.message}". En producción, esto se conectaría a la API real de Gemini.`;
+      
+      // Simular streaming
+      const chunks = response.split(' ').map((word, index) => ({
+        text: word + (index < response.split(' ').length - 1 ? ' ' : ''),
+        delay: index * 100
+      }));
+      
+      return {
+        async *[Symbol.asyncIterator]() {
+          for (const chunk of chunks) {
+            await new Promise(resolve => setTimeout(resolve, chunk.delay));
+            yield chunk;
+          }
+        }
+      };
+    }
+  };
+};

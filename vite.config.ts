@@ -1,21 +1,19 @@
-import { defineConfig } from 'vite';
-import path from 'path';
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './'),
+      '@': './',
     },
   },
-  define: {
-    'process.env': {},
-  },
   optimizeDeps: {
-    exclude: ['better-sqlite3', 'drizzle-orm', 'drizzle-kit'],
+    exclude: ['@google/genai']
   },
   build: {
     rollupOptions: {
-      external: ['better-sqlite3', 'drizzle-orm', 'drizzle-kit'],
-    },
-  },
-});
+      external: ['@google/genai']
+    }
+  }
+})

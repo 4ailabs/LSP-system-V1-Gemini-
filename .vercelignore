@@ -1,24 +1,11 @@
-# Archivos de base de datos que causan problemas en Vercel
-db/
-*.db
-*.sqlite
-*.sqlite3
-
-# Archivos de migración
-drizzle.config.ts
-
 # Archivos de desarrollo
-test-hook.html
-App-simple.tsx
-
-# Archivos de configuración local
 .env.local
 .env.development.local
-
-# Archivos de seguridad
-SECURITY_ALERT.md
-VERCEL_SETUP.md
 
 # Archivos de build
 dist/
 build/
+
+# Archivos de seguridad
+SECURITY_ALERT.md
+VERCEL_SETUP.md
