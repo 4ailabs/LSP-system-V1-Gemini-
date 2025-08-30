@@ -155,13 +155,39 @@ const App: React.FC = () => {
       }
 
       // Preparar contenido para Gemini
-      let geminiContent = content;
+      let geminiContent;
       if (imageData) {
-        geminiContent = `[Usuario ha subido una imagen de su modelo LEGO construido]\n\n${content}`;
+        // Crear contenido multimodal con imagen y texto
+        geminiContent = {
+          contents: [{
+            parts: [
+              {
+                text: content || "Analiza esta imagen de un modelo LEGO construido y proporciona insights sobre lo que representa."
+              },
+              {
+                inlineData: {
+                  mimeType: "image/jpeg",
+                  data: imageData.split(',')[1] // Remover el prefijo "data:image/jpeg;base64,"
+                }
+              }
+            ]
+          }]
+        };
+      } else {
+        // Solo texto
+        geminiContent = { message: content };
       }
 
       // Obtener respuesta de Gemini
-      const response = await chatRef.current.sendMessageStream({ message: geminiContent });
+      let response;
+      if (imageData) {
+        // Enviar contenido multimodal
+        response = await chatRef.current.sendMessageStream(geminiContent);
+      } else {
+        // Enviar solo texto
+        response = await chatRef.current.sendMessageStream({ message: content });
+      }
+      
       let responseText = '';
       
       for await (const chunk of response) {
@@ -293,13 +319,64 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Toggle speech (placeholder para futura implementación)
+  // Toggle speech (text-to-speech)
   const handleToggleSpeech = useCallback(async (message: any) => {
     try {
-      // Implementar funcionalidad de speech-to-text aquí
-      console.log('Toggle speech for message:', message.id);
+      // Si ya hay algo reproduciéndose, detenerlo
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        console.log('Speech stopped');
+        return;
+      }
+
+      // Limpiar el contenido del mensaje para la lectura
+      const cleanContent = message.content
+        .replace(/\[PHASE_UPDATE:\s*\d+\]/g, '') // Remover comandos de fase
+        .replace(/\[.*?\]/g, '') // Remover otros comandos técnicos
+        .replace(/\*\*(.*?)\*\*/g, '$1') // Remover **bold** markdown
+        .replace(/\*(.*?)\*/g, '$1') // Remover *italic* markdown
+        .replace(/^#+\s*/gm, '') // Remover headers markdown
+        .replace(/^[-*+]\s*/gm, '• ') // Convertir listas markdown a viñetas
+        .replace(/^\d+\.\s*/gm, '• ') // Convertir listas numeradas a viñetas
+        .trim();
+
+      // Crear utterance para la síntesis de voz
+      const utterance = new SpeechSynthesisUtterance(cleanContent);
+      
+      // Configurar voz en español si está disponible
+      const voices = window.speechSynthesis.getVoices();
+      const spanishVoice = voices.find(voice => 
+        voice.lang.startsWith('es') || voice.lang.startsWith('es-')
+      );
+      
+      if (spanishVoice) {
+        utterance.voice = spanishVoice;
+      }
+      
+      // Configurar propiedades de la voz
+      utterance.lang = 'es-ES';
+      utterance.rate = 0.9; // Velocidad ligeramente más lenta
+      utterance.pitch = 1.0; // Tono normal
+      utterance.volume = 1.0; // Volumen máximo
+      
+      // Eventos para manejar el estado
+      utterance.onstart = () => {
+        console.log('Speech started for message:', message.id);
+      };
+      
+      utterance.onend = () => {
+        console.log('Speech ended for message:', message.id);
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('Speech error:', event.error);
+      };
+      
+      // Iniciar la síntesis de voz
+      window.speechSynthesis.speak(utterance);
+      
     } catch (error) {
-      console.error('Error toggling speech:', error);
+      console.error('Error with speech synthesis:', error);
     }
   }, []);
 
