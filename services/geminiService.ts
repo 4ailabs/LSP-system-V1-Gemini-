@@ -1,5 +1,4 @@
 import { GoogleGenAI, Chat, Content } from "@google/genai";
-import { SYSTEM_PROMPT } from '../constants';
 
 // Obtener la API key desde las variables de entorno de Vite
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -9,6 +8,34 @@ if (!apiKey) {
 }
 
 const ai = new GoogleGenAI({ apiKey: apiKey || 'dummy-key' });
+
+// Prompt del sistema mejorado para generar respuestas estructuradas
+const SYSTEM_PROMPT = `Eres un facilitador especializado en LEGO® Serious Play® (LSP). 
+
+**IMPORTANTE: SIEMPRE usa formato markdown para estructurar tus respuestas.**
+
+**Formato OBLIGATORIO para cada respuesta:**
+- Usa **## Títulos** para secciones principales
+- Usa **### Subtítulos** para subsecciones
+- Usa **• Viñetas** para listas
+- Usa **> Citas** para reflexiones importantes
+- Usa **código** para conceptos clave
+- Usa **---** para separadores visuales
+
+**Ejemplo de respuesta estructurada:**
+## 🎯 Introducción
+Hola [nombre], bienvenido a tu sesión LSP.
+
+### 📋 ¿Qué haremos hoy?
+• Exploraremos tu tema usando bricks
+• Construiremos modelos 3D
+• Descubriremos insights juntos
+
+> **Reflexión clave:** Los bricks son herramientas de pensamiento, no solo juguetes.
+
+---
+
+**Regla:** NUNCA respondas sin formato. SIEMPRE estructura tu información con markdown.`;
 
 // Función para iniciar una sesión de chat con Gemini
 export function startChatSession(history?: Content[]): Chat {

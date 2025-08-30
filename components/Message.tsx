@@ -56,7 +56,7 @@ const MessageComponent: React.FC<MessageProps> = ({
                   lineHeight: '1.8',
                   fontSize: '1rem'
                 }}
-                className="prose prose-sm dark:prose-invert max-w-none"
+                className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-slate-800 prose-headings:dark:text-white prose-headings:font-semibold prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-p:text-slate-700 prose-p:dark:text-slate-300 prose-strong:text-slate-800 prose-strong:dark:text-white prose-strong:font-semibold prose-ul:my-2 prose-li:my-1 prose-blockquote:border-l-4 prose-blockquote:border-blue-500 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-slate-600 prose-blockquote:dark:text-slate-400"
                 dangerouslySetInnerHTML={{ __html: marked.parse(message.content || '') }}
               />
             </div>
