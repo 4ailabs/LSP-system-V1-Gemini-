@@ -213,7 +213,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
                         value={modelTitle}
                         onChange={(e) => setModelTitle(e.target.value)}
                         placeholder="Dale un título a tu modelo..."
-                        className="w-full bg-slate-100 dark:bg-slate-600 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 rounded-md p-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 border border-slate-300 dark:border-slate-500"
+                        className="w-full bg-slate-100 dark:bg-slate-600 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border border-slate-300 dark:border-slate-500"
                     />
                 </div>
             </div>
@@ -245,7 +245,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
               {isListening ? <StopCircleIcon /> : <MicrophoneIcon />}
             </button>
             {isListening ? (
-                <div className="p-2 text-slate-600 dark:text-slate-300 text-sm w-full flex-1 font-medium">
+                <div className="p-2 text-slate-600 dark:text-slate-300 text-base w-full flex-1 font-medium">
                     Escuchando...
                 </div>
             ) : (
@@ -255,7 +255,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
                     onChange={handleInput}
                     onKeyDown={handleKeyDown}
                     placeholder="Escribe tu mensaje o describe tu modelo..."
-                    className="flex-1 bg-transparent p-2 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none resize-none max-h-32 text-xs font-medium"
+                    className="flex-1 bg-transparent p-2 text-slate-800 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none resize-none max-h-32 text-sm font-medium"
                     rows={1}
                     disabled={isLoading}
                 />

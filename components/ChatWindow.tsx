@@ -25,15 +25,15 @@ const WelcomeScreen = () => (
         
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-3">
+                <h1 className="text-3xl sm:text-4xl font-bold text-slate-800 dark:text-white mb-3">
                     Bienvenido al LSP Insight System
                 </h1>
-                <p className="text-base sm:text-lg text-slate-600 dark:text-white leading-relaxed">
+                <p className="text-lg sm:text-xl text-slate-600 dark:text-white leading-relaxed">
                     Tu facilitador especializado en LEGO® Serious Play®
                 </p>
             </div>
             
-            <p className="text-slate-700 dark:text-white leading-relaxed max-w-lg">
+            <p className="text-lg text-slate-700 dark:text-white leading-relaxed max-w-lg">
                 Estoy aquí para guiarte en tu sesión de descubrimiento y reflexión profunda. 
                 Para comenzar, cuéntame un poco sobre el tema que te gustaría explorar hoy.
             </p>

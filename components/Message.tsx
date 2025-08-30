@@ -41,7 +41,7 @@ const MessageComponent: React.FC<MessageProps> = ({
         <>
           <div className="flex-1" />
           <div className="max-w-3xl text-right">
-            <p className="text-slate-800 dark:text-white leading-relaxed">{message.content}</p>
+            <p className="text-slate-800 dark:text-white leading-relaxed text-base">{message.content}</p>
           </div>
           <UserIcon />
         </>
@@ -54,7 +54,7 @@ const MessageComponent: React.FC<MessageProps> = ({
               <div
                 style={{
                   lineHeight: '1.6',
-                  fontSize: '0.875rem'
+                  fontSize: '1rem'
                 }}
                 dangerouslySetInnerHTML={{ __html: marked.parse(message.content || '') }}
               />
