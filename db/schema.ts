@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, blob } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, blob, sql } from 'drizzle-orm/sqlite-core';
 
 // Tabla de sesiones LSP
 export const sessions = sqliteTable('sessions', {
