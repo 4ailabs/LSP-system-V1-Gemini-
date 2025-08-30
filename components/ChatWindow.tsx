@@ -10,6 +10,7 @@ interface ChatWindowProps {
   onToggleSpeech: (message: Message) => void;
   copiedMessageId: string | null;
   onCopyMessage: (message: Message) => void;
+  onToggleInsight: (messageId: string) => void;
 }
 
 const WelcomeScreen = () => (
@@ -23,7 +24,7 @@ const WelcomeScreen = () => (
 );
 
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, speakingMessageId, onToggleSpeech, copiedMessageId, onCopyMessage }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, speakingMessageId, onToggleSpeech, copiedMessageId, onCopyMessage, onToggleInsight }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isLoading, speakingMe
                   onToggleSpeech={onToggleSpeech}
                   copiedMessageId={copiedMessageId}
                   onCopyMessage={onCopyMessage}
+                  onToggleInsight={onToggleInsight}
                 />
             ))
         )}

@@ -14,7 +14,15 @@ import {
     Volume2,
     PauseCircle,
     Copy,
-    Check
+    Check,
+    Trash2,
+    Edit3,
+    PlusCircle,
+    Save,
+    X,
+    ImageIcon,
+    MessageSquareQuote,
+    ChevronDown
 } from 'lucide-react';
 
 
@@ -84,4 +92,31 @@ export const CopyIcon = ({ className }: { className?: string }) => (
 );
 export const CheckIcon = ({ className }: { className?: string }) => (
     <Check className={className} />
+);
+export const StarIcon = ({ className }: { className?: string }) => (
+    <Lightbulb className={className} />
+);
+export const TrashIcon = ({ className }: { className?: string }) => (
+    <Trash2 className={className} />
+);
+export const EditIcon = ({ className }: { className?: string }) => (
+    <Edit3 className={className} />
+);
+export const PlusIcon = ({ className }: { className?: string }) => (
+    <PlusCircle className={className} />
+);
+export const SaveIcon = ({ className }: { className?: string }) => (
+    <Save className={className} />
+);
+export const CancelIcon = ({ className }: { className?: string }) => (
+    <X className={className} />
+);
+export const GalleryIcon = ({ className }: { className?: string }) => (
+    <ImageIcon className={className} />
+);
+export const InsightsIcon = ({ className }: { className?: string }) => (
+    <MessageSquareQuote className={className} />
+);
+export const ChevronDownIcon = ({ className }: { className?: string }) => (
+    <ChevronDown className={className} />
 );

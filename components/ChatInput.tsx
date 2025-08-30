@@ -45,7 +45,8 @@ declare global {
 interface ChatInputProps {
   onSendMessage: (
     text: string, 
-    image?: { base64: string; mimeType: string }, 
+    image?: { base64: string; mimeType: string },
+    modelTitle?: string,
   ) => void;
   isLoading: boolean;
 }
@@ -54,6 +55,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   const [text, setText] = useState('');
   const [image, setImage] = useState<{ base64: string; mimeType: string } | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [modelTitle, setModelTitle] = useState('');
   const [isListening, setIsListening] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -117,6 +119,13 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
       reader.onerror = (error) => reject(error);
     });
   }, []);
+  
+  const resetImageState = () => {
+    setImage(null);
+    setImagePreview(null);
+    setModelTitle('');
+    if(fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -131,15 +140,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
     e.preventDefault();
     if (isLoading || (!text.trim() && !image)) return;
 
-    onSendMessage(text, image || undefined);
+    onSendMessage(text, image || undefined, modelTitle || undefined);
     
     setText('');
-    setImage(null);
-    setImagePreview(null);
+    resetImageState();
 
-    if(fileInputRef.current) {
-        fileInputRef.current.value = "";
-    }
     if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
     }
@@ -167,24 +172,31 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
     <div className="bg-slate-100 dark:bg-slate-900 px-4 py-3">
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
-          <div className="flex flex-col gap-2">
-            {imagePreview && (
-              <div className="p-2">
-                  <div className="relative w-24 h-24 p-1 border rounded-md bg-white">
+          {imagePreview && (
+            <div className="p-2 bg-white dark:bg-slate-800 rounded-t-2xl flex gap-4 items-start">
+                <div className="relative w-24 h-24 p-1 border rounded-md bg-white flex-shrink-0">
                   <img src={imagePreview} alt="Preview" className="w-full h-full object-cover rounded" />
                   <button
                     type="button"
-                    onClick={() => { setImage(null); setImagePreview(null); if(fileInputRef.current) fileInputRef.current.value = ""; }}
+                    onClick={resetImageState}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md"
                     aria-label="Remove image"
                   >
                     X
                   </button>
                 </div>
-              </div>
-            )}
-          </div>
-          <div className="flex items-end p-2 bg-white dark:bg-slate-800 rounded-2xl shadow-sm">
+                <div className="flex-1">
+                    <input 
+                        type="text"
+                        value={modelTitle}
+                        onChange={(e) => setModelTitle(e.target.value)}
+                        placeholder="Dale un título a tu modelo..."
+                        className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-md p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                </div>
+            </div>
+          )}
+          <div className={`flex items-end p-2 bg-white dark:bg-slate-800 shadow-sm ${imagePreview ? 'rounded-b-2xl' : 'rounded-2xl'}`}>
             <input
               type="file"
               ref={fileInputRef}

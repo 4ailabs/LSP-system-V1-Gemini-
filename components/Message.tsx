@@ -1,7 +1,7 @@
 import React from 'react';
 import { marked } from 'marked';
 import { Message, Role } from '../types';
-import { Volume2Icon, PauseCircleIcon, CopyIcon, CheckIcon } from './icons';
+import { Volume2Icon, PauseCircleIcon, CopyIcon, CheckIcon, StarIcon } from './icons';
 
 interface MessageProps {
   message: Message;
@@ -9,6 +9,7 @@ interface MessageProps {
   onToggleSpeech: (message: Message) => void;
   copiedMessageId: string | null;
   onCopyMessage: (message: Message) => void;
+  onToggleInsight: (messageId: string) => void;
 }
 
 const UserIcon = () => (
@@ -21,10 +22,11 @@ const ModelIcon = () => (
     </div>
 );
 
-const MessageComponent: React.FC<MessageProps> = ({ message, speakingMessageId, onToggleSpeech, copiedMessageId, onCopyMessage }) => {
+const MessageComponent: React.FC<MessageProps> = ({ message, speakingMessageId, onToggleSpeech, copiedMessageId, onCopyMessage, onToggleInsight }) => {
   const isUser = message.role === Role.USER;
   const isSpeaking = speakingMessageId === message.id;
   const isCopied = copiedMessageId === message.id;
+  const isInsight = message.isInsight;
 
   const renderModelText = (text: string) => {
     const rawMarkup = marked.parse(text || '') as string;
@@ -50,10 +52,11 @@ const MessageComponent: React.FC<MessageProps> = ({ message, speakingMessageId, 
           <div key={index}>
             {part.text && (isUser ? <p className="whitespace-pre-wrap">{part.text}</p> : renderModelText(part.text))}
             {part.image && (
-              <div className="mt-2">
+              <div className="mt-2 flex flex-col gap-2">
+                {part.image.modelTitle && <p className={`font-bold text-sm ${isUser ? 'text-blue-200' : 'text-slate-500 dark:text-slate-400'}`}>{part.image.modelTitle}</p>}
                 <img
                   src={`data:${part.image.mimeType};base64,${part.image.base64}`}
-                  alt="User upload"
+                  alt={part.image.modelTitle || "User upload"}
                   className="rounded-lg max-w-xs"
                 />
               </div>
@@ -61,25 +64,26 @@ const MessageComponent: React.FC<MessageProps> = ({ message, speakingMessageId, 
           </div>
         ))}
       </div>
-      <div className="flex flex-col items-center self-center space-y-2">
+      <div className="flex flex-col items-center self-center space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => onToggleInsight(message.id)}
+          className={`text-slate-400 hover:text-yellow-500 ${isInsight ? 'text-yellow-400' : ''}`}
+          aria-label={isInsight ? 'Remove from insights' : 'Add to insights'}
+        >
+          <StarIcon className={`w-5 h-5 ${isInsight ? 'fill-current' : ''}`} />
+        </button>
         <button
           onClick={() => onCopyMessage(message)}
-          className={`text-slate-400 hover:text-blue-500 transition-opacity ${
-            isCopied ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`}
+          className={`text-slate-400 hover:text-blue-500 ${isCopied ? 'opacity-100' : ''}`}
           aria-label={isCopied ? 'Copied!' : 'Copy message'}
           disabled={isCopied}
         >
-          {isCopied ? (
-            <CheckIcon className="w-5 h-5 text-green-500" />
-          ) : (
-            <CopyIcon className="w-5 h-5" />
-          )}
+          {isCopied ? <CheckIcon className="w-5 h-5 text-green-500" /> : <CopyIcon className="w-5 h-5" />}
         </button>
         {!isUser && (
             <button
               onClick={() => onToggleSpeech(message)}
-              className="text-slate-400 hover:text-blue-500 transition-opacity opacity-0 group-hover:opacity-100"
+              className="text-slate-400 hover:text-blue-500"
               aria-label={isSpeaking ? 'Pause reading' : 'Read message aloud'}
             >
             {isSpeaking ? <PauseCircleIcon className="w-5 h-5" /> : <Volume2Icon className="w-5 h-5" />}

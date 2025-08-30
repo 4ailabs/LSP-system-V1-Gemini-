@@ -8,6 +8,7 @@ export interface MessagePart {
   image?: {
     base64: string;
     mimeType: string;
+    modelTitle?: string;
   };
 }
 
@@ -15,6 +16,7 @@ export interface Message {
   id: string;
   role: Role;
   parts: MessagePart[];
+  isInsight?: boolean;
 }
 
 export enum LspPhase {
@@ -24,4 +26,12 @@ export enum LspPhase {
   INSIGHT_DISCOVERY = 4,
   STRATEGY_DEVELOPMENT = 5,
   EVALUATION = 6,
+}
+
+export interface Session {
+    id: string;
+    name: string;
+    messages: Message[];
+    currentPhase: LspPhase;
+    createdAt: number;
 }
