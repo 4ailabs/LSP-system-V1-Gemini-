@@ -3,12 +3,5 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "installCommand": "npm install --legacy-peer-deps",
-  "devCommand": "npm run dev",
-  "ignoreCommand": "echo 'Skipping problematic files'",
-  "functions": {
-    "db/**/*": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  "installCommand": "npm install --legacy-peer-deps"
 }
