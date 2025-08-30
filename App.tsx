@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
 import Sidebar from './components/Sidebar';
+import { SessionNameModal } from './components/SessionNameModal';
 import { startChatSession } from './services/geminiService';
 import { useLocalDatabase } from './hooks/useLocalDatabase';
 import { LspPhase } from './types';
@@ -21,20 +22,23 @@ const App: React.FC = () => {
     addImage,
     toggleInsight,
     updatePhase,
+    editSessionName,
     deleteSession
   } = useLocalDatabase();
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<LspPhase>(LspPhase.IDENTIFICATION);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingSession, setEditingSession] = useState<{ id: string; name: string } | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<any>(null);
 
   // Inicializar sesión por defecto si no hay ninguna
   useEffect(() => {
     if (isInitialized && sessions.length === 0) {
-      createSession('Nueva Sesión LSP');
+      handleNewSession();
     }
-  }, [isInitialized, sessions.length, createSession]);
+  }, [isInitialized, sessions.length]);
 
   // Sincronizar fase actual con la sesión activa
   useEffect(() => {
@@ -197,15 +201,35 @@ const App: React.FC = () => {
   // Crear nueva sesión
   const handleNewSession = useCallback(async () => {
     try {
-      const sessionName = `Sesión LSP ${new Date().toLocaleDateString()}`;
-      await createSession(sessionName);
-      
-      // Reinicializar chat para nueva sesión
-      chatRef.current = startChatSession();
+      setIsModalOpen(true);
+      setEditingSession(null);
     } catch (error) {
       console.error('Error creating new session:', error);
     }
-  }, [createSession]);
+  }, []);
+
+  // Guardar nombre de sesión (nueva o editada)
+  const handleSaveSessionName = useCallback(async (name: string) => {
+    try {
+      if (editingSession) {
+        // Editar sesión existente
+        await editSessionName(editingSession.id, name);
+      } else {
+        // Crear nueva sesión
+        await createSession(name);
+      }
+      setIsModalOpen(false);
+      setEditingSession(null);
+    } catch (error) {
+      console.error('Error saving session name:', error);
+    }
+  }, [editingSession, editSessionName, createSession]);
+
+  // Cerrar modal
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setEditingSession(null);
+  }, []);
 
   // Seleccionar sesión
   const handleSelectSession = useCallback(async (sessionId: string) => {
@@ -296,6 +320,7 @@ const App: React.FC = () => {
           onNewSession={handleNewSession}
           onSelectSession={handleSelectSession}
           onDeleteSession={handleDeleteSession}
+          onEditSessionName={editSessionName}
         />
       </div>
       
@@ -334,6 +359,15 @@ const App: React.FC = () => {
         
         <div ref={chatEndRef} />
       </div>
+
+      {/* Modal para nombrar/editar sesiones */}
+      <SessionNameModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleSaveSessionName}
+        initialName={editingSession?.name || ''}
+        isEditing={!!editingSession}
+      />
     </div>
   );
 };

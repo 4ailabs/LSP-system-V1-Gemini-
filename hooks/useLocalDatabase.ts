@@ -202,6 +202,22 @@ export const useLocalDatabase = () => {
     }
   }, [sessions, saveSessions]);
 
+  // Editar nombre de sesión
+  const editSessionName = useCallback(async (sessionId: string, newName: string) => {
+    try {
+      const newSessions = sessions.map(s => 
+        s.id === sessionId ? { ...s, name: newName } : s
+      );
+      
+      setSessions(newSessions);
+      setCurrentSession(prev => prev?.id === sessionId ? { ...prev, name: newName } : prev);
+      
+      saveSessions(newSessions);
+    } catch (error) {
+      console.error('Error editing session name:', error);
+    }
+  }, [sessions, saveSessions]);
+
   // Eliminar sesión
   const deleteSession = useCallback(async (sessionId: string) => {
     try {
@@ -246,6 +262,7 @@ export const useLocalDatabase = () => {
     addImage,
     toggleInsight,
     updatePhase,
+    editSessionName,
     deleteSession
   };
 };
