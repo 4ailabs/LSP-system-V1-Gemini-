@@ -83,10 +83,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         {isLoading && messages[messages.length - 1]?.role === 'user' && (
           <div className="flex items-start gap-4 sm:gap-6 my-6 sm:my-8">
               <div className="w-8 h-8 flex-shrink-0" />
-              <div className="p-4 sm:p-6 rounded-2xl max-w-lg bg-white dark:bg-slate-800 rounded-bl-none flex items-center space-x-3 shadow-md border border-slate-200 dark:border-slate-600">
-                  <div className="w-3 h-3 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse"></div>
-                  <div className="w-3 h-3 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-3 h-3 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="p-3 sm:p-4 rounded-2xl max-w-lg bg-white dark:bg-slate-800 rounded-bl-none flex items-center space-x-2 shadow-md border border-slate-200 dark:border-slate-600">
+                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse"></div>
+                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-slate-600 dark:bg-slate-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
               </div>
           </div>
         )}
