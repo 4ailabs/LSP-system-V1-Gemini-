@@ -15,7 +15,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaRecorderRef = useRef<any>(null);
   const recordingIntervalRef = useRef<number | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -71,54 +71,31 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
   // Función para iniciar grabación de audio
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
+      // Iniciar reconocimiento de voz directamente (más simple y efectivo)
+      const recognition = new (window.SpeechRecognition || (window as any).webkitSpeechRecognition)();
+      recognition.lang = 'es-ES';
+      recognition.continuous = false;
+      recognition.interimResults = false;
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        console.log('Transcripción recibida:', transcript);
+        setMessage(transcript);
       };
 
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/wav' });
-        
-        // Convertir audio a texto usando Web Speech API
-        try {
-          const recognition = new (window.SpeechRecognition || (window as any).webkitSpeechRecognition)();
-          recognition.lang = 'es-ES';
-          recognition.continuous = false;
-          recognition.interimResults = false;
-
-          recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setMessage(transcript);
-          };
-
-          recognition.onerror = (event: any) => {
-            console.error('Error en reconocimiento de voz:', event.error);
-            alert('Error en el reconocimiento de voz. Por favor, intenta de nuevo.');
-          };
-
-          // Crear un archivo de audio temporal para el reconocimiento
-          const audioFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
-          const audioUrl = URL.createObjectURL(audioFile);
-          
-          // Iniciar reconocimiento
-          recognition.start();
-          
-        } catch (error) {
-          console.error('Error al procesar audio:', error);
-          alert('No se pudo procesar el audio. Por favor, escribe tu mensaje.');
-        }
-
-        // Limpiar stream
-        stream.getTracks().forEach(track => track.stop());
+      recognition.onerror = (event: any) => {
+        console.error('Error en reconocimiento de voz:', event.error);
+        alert('Error en el reconocimiento de voz. Por favor, intenta de nuevo.');
       };
 
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
+      recognition.onend = () => {
+        console.log('Reconocimiento de voz finalizado');
+      };
+
+      // Iniciar reconocimiento
+      recognition.start();
+      
+      // Simular grabación para la UI
       setIsRecording(true);
       setRecordingTime(0);
 
@@ -126,6 +103,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
       recordingIntervalRef.current = window.setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
+
+      // Guardar referencia para poder detener
+      mediaRecorderRef.current = recognition as any;
 
     } catch (error) {
       console.error('Error al acceder al micrófono:', error);
@@ -136,7 +116,14 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
   // Función para detener grabación
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+      // Detener reconocimiento de voz
+      if (mediaRecorderRef.current.stop) {
+        mediaRecorderRef.current.stop();
+      }
+      if (mediaRecorderRef.current.abort) {
+        mediaRecorderRef.current.abort();
+      }
+      
       setIsRecording(false);
       
       if (recordingIntervalRef.current) {
@@ -145,6 +132,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
       }
       
       setRecordingTime(0);
+      console.log('Grabación detenida');
     }
   };
 
@@ -205,7 +193,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
               type="button"
               onClick={startRecording}
               disabled={isLoading}
-              className="flex-shrink-0 w-12 h-12 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50 flex items-center justify-center"
+              className="flex-shrink-0 w-12 h-12 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors disabled:opacity-50 flex items-center justify-center"
               title="Grabar audio"
             >
               <MicrophoneIcon />
