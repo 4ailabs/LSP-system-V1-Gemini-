@@ -165,20 +165,30 @@ const Sidebar: React.FC<SidebarProps> = ({
               Fases LSP
             </h3>
             <div className="space-y-2 sm:space-y-3">
+              {/* Debug info - solo visible en desarrollo */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="text-xs text-yellow-600 dark:text-yellow-400 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                  Fase actual: {currentPhase}
+                </div>
+              )}
+              
               {Object.entries(PHASE_DESCRIPTIONS).map(([phaseKey, phase]) => {
                 const phaseId = parseInt(phaseKey) as LspPhase;
                 const isActive = phaseId === currentPhase;
                 const isCompleted = phaseId < currentPhase;
                 
+                // Logging para debug
+                console.log(`Fase ${phaseId}: active=${isActive}, completed=${isCompleted}, current=${currentPhase}`);
+                
                 return (
                   <div
                     key={phaseKey}
-                    className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-colors border ${
+                    className={`flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-lg transition-all duration-300 border ${
                       isActive 
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-white border-blue-200 dark:border-blue-700' 
+                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-white border-blue-200 dark:border-blue-700 shadow-md scale-105' 
                         : isCompleted
                         ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-white border-green-200 dark:border-green-700'
-                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-white border-slate-200 dark:border-slate-600'
+                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-white border-slate-200 dark:border-slate-600 opacity-60'
                     }`}
                   >
                     <div className="flex-shrink-0">

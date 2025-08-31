@@ -150,68 +150,86 @@ const App: React.FC = () => {
   const extractPhaseUpdates = useCallback((text: string): LspPhase[] => {
     const updates: LspPhase[] = [];
     
-    // Buscar patrones más inteligentes de cambio de fase en el texto
-    const lowerText = text.toLowerCase();
-    
-    // Fase 1: Identificación y Contextualización
-    if (lowerText.includes('fase 1') || 
-        lowerText.includes('identificación') || 
-        lowerText.includes('contextualización') ||
-        lowerText.includes('nombre del usuario') ||
-        lowerText.includes('objetivo central') ||
-        lowerText.includes('tema específico')) {
-      updates.push(LspPhase.IDENTIFICATION);
+    // PRIORIDAD 1: Buscar marcadores explícitos [PHASE_UPDATE: X]
+    const phaseUpdateMatches = text.match(/\[PHASE_UPDATE:\s*(\d+)\]/g);
+    if (phaseUpdateMatches) {
+      phaseUpdateMatches.forEach(match => {
+        const phaseNumber = parseInt(match.match(/\d+/)?.[0] || '1');
+        if (phaseNumber >= 1 && phaseNumber <= 6) {
+          updates.push(phaseNumber as LspPhase);
+          console.log('🎯 Marcador de fase detectado:', phaseNumber);
+        }
+      });
     }
     
-    // Fase 2: Desarrollo de Protocolos
-    if (lowerText.includes('fase 2') || 
-        lowerText.includes('protocolo') ||
-        lowerText.includes('diseñar protocolo') ||
-        lowerText.includes('número de modelos') ||
-        lowerText.includes('secuencia lógica') ||
-        lowerText.includes('tiempos asignados')) {
-      updates.push(LspPhase.PROTOCOL_DEVELOPMENT);
+    // PRIORIDAD 2: Si no hay marcadores explícitos, usar detección por palabras clave
+    if (updates.length === 0) {
+      const lowerText = text.toLowerCase();
+      console.log('🔍 Buscando palabras clave de fase en:', lowerText.substring(0, 100));
+      
+      // Fase 1: Identificación y Contextualización
+      if (lowerText.includes('fase 1') || 
+          lowerText.includes('identificación') || 
+          lowerText.includes('contextualización') ||
+          lowerText.includes('bienvenid') ||
+          lowerText.includes('nombre del usuario') ||
+          lowerText.includes('objetivo central') ||
+          lowerText.includes('¿cómo te llamas?') ||
+          lowerText.includes('¿cuál es tu nombre?')) {
+        updates.push(LspPhase.IDENTIFICATION);
+      }
+      
+      // Fase 2: Desarrollo de Protocolos
+      if (lowerText.includes('fase 2') || 
+          lowerText.includes('protocolo') ||
+          lowerText.includes('diseñar protocolo') ||
+          lowerText.includes('secuencia de modelos') ||
+          lowerText.includes('plan de construcción') ||
+          lowerText.includes('estructura del proceso')) {
+        updates.push(LspPhase.PROTOCOL_DEVELOPMENT);
+      }
+      
+      // Fase 3: Implementación LSP
+      if (lowerText.includes('fase 3') || 
+          lowerText.includes('implementación') ||
+          lowerText.includes('construir') ||
+          lowerText.includes('construcción') ||
+          lowerText.includes('piensa con las manos') ||
+          lowerText.includes('comenzar a construir')) {
+        updates.push(LspPhase.IMPLEMENTATION);
+      }
+      
+      // Fase 4: Descubrimiento de Insights
+      if (lowerText.includes('fase 4') || 
+          lowerText.includes('insights') ||
+          lowerText.includes('descubrimiento') ||
+          lowerText.includes('comparte tu modelo') ||
+          lowerText.includes('cuéntame sobre tu modelo') ||
+          lowerText.includes('metáforas')) {
+        updates.push(LspPhase.INSIGHT_DISCOVERY);
+      }
+      
+      // Fase 5: Desarrollo de Estrategias
+      if (lowerText.includes('fase 5') || 
+          lowerText.includes('estrategia') ||
+          lowerText.includes('plan de acción') ||
+          lowerText.includes('próximos pasos') ||
+          lowerText.includes('implementar cambios')) {
+        updates.push(LspPhase.STRATEGY_DEVELOPMENT);
+      }
+      
+      // Fase 6: Evaluación y Análisis
+      if (lowerText.includes('fase 6') || 
+          lowerText.includes('evaluación') ||
+          lowerText.includes('conclusión') ||
+          lowerText.includes('concluimos nuestra sesión') ||
+          lowerText.includes('resumen final')) {
+        updates.push(LspPhase.EVALUATION);
+      }
     }
     
-    // Fase 3: Implementación LSP
-    if (lowerText.includes('fase 3') || 
-        lowerText.includes('implementación') ||
-        lowerText.includes('construcción') ||
-        lowerText.includes('construir modelo') ||
-        lowerText.includes('pensar con las manos') ||
-        lowerText.includes('modelo 3d')) {
-      updates.push(LspPhase.IMPLEMENTATION);
-    }
-    
-    // Fase 4: Descubrimiento de Insights
-    if (lowerText.includes('fase 4') || 
-        lowerText.includes('insights') ||
-        lowerText.includes('descubrimiento') ||
-        lowerText.includes('analizar modelo') ||
-        lowerText.includes('metáforas') ||
-        lowerText.includes('significado personal')) {
-      updates.push(LspPhase.INSIGHT_DISCOVERY);
-    }
-    
-    // Fase 5: Desarrollo de Estrategias
-    if (lowerText.includes('fase 5') || 
-        lowerText.includes('estrategia') ||
-        lowerText.includes('plan de acción') ||
-        lowerText.includes('próximos pasos') ||
-        lowerText.includes('micro-hábitos') ||
-        lowerText.includes('cambios de comportamiento')) {
-      updates.push(LspPhase.STRATEGY_DEVELOPMENT);
-    }
-    
-    // Fase 6: Evaluación y Análisis
-    if (lowerText.includes('fase 6') || 
-        lowerText.includes('evaluación') ||
-        lowerText.includes('conclusión') ||
-        lowerText.includes('resumen final') ||
-        lowerText.includes('sesión concluida') ||
-        lowerText.includes('cerrar proceso') ||
-        lowerText.includes('finalizar sesión')) {
-      updates.push(LspPhase.EVALUATION);
+    if (updates.length > 0) {
+      console.log('📈 Fases detectadas:', updates);
     }
     
     return updates;
@@ -266,13 +284,13 @@ const App: React.FC = () => {
         }
       }
 
-      // Limpiar respuesta de Gemini
+      // PRIMERO: Extraer actualizaciones de fase ANTES de limpiar
+      const phaseUpdates = extractPhaseUpdates(responseText);
+      console.log('📈 Actualizaciones de fase detectadas:', phaseUpdates);
+
+      // DESPUÉS: Limpiar respuesta de Gemini removiendo comandos técnicos
       const cleanText = cleanGeminiResponse(responseText);
       console.log('🧹 Texto limpio:', cleanText.substring(0, 100));
-
-      // Extraer actualizaciones de fase
-      const phaseUpdates = extractPhaseUpdates(cleanText);
-      console.log('📈 Actualizaciones de fase detectadas:', phaseUpdates);
 
       // Crear mensaje del modelo
       const modelMessage: SimpleMessage = {
@@ -292,9 +310,16 @@ const App: React.FC = () => {
       // Actualizar fase si es necesario
       if (phaseUpdates.length > 0) {
         const newPhase = phaseUpdates[phaseUpdates.length - 1];
+        console.log('🔄 Actualizando fase de', currentPhase, 'a', newPhase);
         await updateSession(sessionId, { currentPhase: newPhase });
         setCurrentPhase(newPhase);
-        console.log('🔄 Fase actualizada a:', newPhase);
+        console.log('✅ Fase actualizada exitosamente a:', newPhase);
+        
+        // Actualizar estado local inmediatamente para UI
+        setCurrentSessionMessages(prev => [...prev, {
+          ...modelMessage,
+          metadata: { phaseUpdate: newPhase }
+        } as any]);
       }
 
       // Detectar si la sesión concluyó
