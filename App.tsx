@@ -18,12 +18,14 @@ const App: React.FC = () => {
     updateSession,
     deleteSession,
     addMessage,
+    getSessionMessages,
     addImageToSession,
     getSessionImages
   } = useLocalDatabase();
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<LspPhase>(LspPhase.IDENTIFICATION);
+  const [isInitializing, setIsInitializing] = useState(true);
   
   // Estados para el modal de sesiones
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,24 +46,22 @@ const App: React.FC = () => {
   // Obtener la sesión actual
   const currentSession = sessions.find(s => s.id === currentSessionId);
 
+  // Obtener mensajes de la sesión actual
+  const currentSessionMessages = getSessionMessages(currentSessionId);
+
   // Inicializar con la primera sesión si existe
   useEffect(() => {
     if (sessions.length > 0 && !currentSessionId) {
       setCurrentSessionId(sessions[0].id);
     }
+    
+    // Marcar como inicializado después de un breve delay
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, [sessions, currentSessionId]);
-
-  // Sincronizar fase actual con la sesión activa
-  useEffect(() => {
-    if (currentSession) {
-      setCurrentPhase(currentSession.currentPhase as LspPhase);
-    }
-  }, [currentSession]);
-
-  // Scroll automático al final del chat
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   // Inicializar chat de Gemini
   useEffect(() => {
@@ -69,6 +69,46 @@ const App: React.FC = () => {
       chatRef.current = startChatSession();
     }
   }, [currentSession]);
+
+  // Sincronizar fase actual con la sesión activa
+  useEffect(() => {
+    if (currentSession) {
+      setCurrentPhase(currentSession.currentPhase);
+    }
+  }, [currentSession]);
+
+  // Scroll al final del chat
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [currentSessionMessages]);
+
+  // Crear nueva sesión
+  const handleNewSession = useCallback(async () => {
+    try {
+      const sessionId = await createSession('Nueva Sesión LSP');
+      setCurrentSessionId(sessionId);
+      
+      // Reinicializar chat para la nueva sesión
+      if (chatRef.current) {
+        chatRef.current = startChatSession();
+      }
+      
+      // Abrir modal para nombrar la sesión
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error('Error creating session:', error);
+      alert('Error al crear la sesión. Por favor, intenta de nuevo.');
+    }
+  }, [createSession]);
+
+  // Si no hay sesiones, crear una por defecto
+  useEffect(() => {
+    if (sessions.length === 0 && !isInitializing) {
+      handleNewSession();
+    }
+  }, [sessions.length, isInitializing, handleNewSession]);
 
   // Extraer actualizaciones de fase del texto
   const extractPhaseUpdates = useCallback((text: string): LspPhase[] => {
@@ -178,7 +218,7 @@ const App: React.FC = () => {
   // Procesar respuesta streaming
   const processStream = useCallback(async (response: any, sessionId: string) => {
     console.log('🔄 === INICIO PROCESAMIENTO STREAM ===');
-    console.log('📊 Mensajes ANTES de processStream:', messages.length);
+    console.log('📊 Mensajes ANTES de processStream:', currentSessionMessages.length);
 
     try {
       let responseText = '';
@@ -201,6 +241,7 @@ const App: React.FC = () => {
       // Crear mensaje del modelo
       const modelMessage: SimpleMessage = {
         id: Date.now().toString(),
+        sessionId: sessionId, // Agregar sessionId
         role: 'model',
         content: cleanText,
         isInsight: false,
@@ -210,7 +251,7 @@ const App: React.FC = () => {
       // Agregar mensaje del modelo
       await addMessage(modelMessage);
       console.log('✅ Mensaje del modelo agregado:', modelMessage);
-      console.log('📊 Mensajes DESPUÉS de agregar modelo:', messages.length);
+      console.log('📊 Mensajes DESPUÉS de agregar modelo:', currentSessionMessages.length);
 
       // Actualizar fase si es necesario
       if (phaseUpdates.length > 0) {
@@ -232,7 +273,7 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('❌ Error processing stream:', error);
     }
-  }, [addMessage, updateSession, cleanGeminiResponse, extractPhaseUpdates, detectSessionConclusion, currentPhase, messages]);
+  }, [addMessage, updateSession, cleanGeminiResponse, extractPhaseUpdates, detectSessionConclusion, currentPhase, currentSessionMessages]);
 
   // Función para enviar mensaje
   const handleSendMessage = async (text: string, imageData?: string) => {
@@ -247,6 +288,7 @@ const App: React.FC = () => {
       // Crear mensaje del usuario
       const userMessage: SimpleMessage = {
         id: Date.now().toString(),
+        sessionId: currentSession.id, // Agregar sessionId
         role: 'user',
         content: text,
         isInsight: false,
@@ -256,7 +298,7 @@ const App: React.FC = () => {
       // Agregar mensaje del usuario
       await addMessage(userMessage);
       console.log('✅ Mensaje del usuario agregado:', userMessage);
-      console.log('📊 Mensajes DESPUÉS del usuario:', messages.length);
+      console.log('📊 Mensajes DESPUÉS del usuario:', currentSessionMessages.length);
 
       // Si hay imagen, guardarla en la base de datos
       if (imageData) {
@@ -279,10 +321,10 @@ const App: React.FC = () => {
       console.log('🤖 Respuesta de Gemini recibida (primeros 100 chars):', response.response.text().substring(0, 100));
 
       // Procesar respuesta
-      console.log('📊 Mensajes ANTES de procesar respuesta:', messages.length);
+      console.log('📊 Mensajes ANTES de procesar respuesta:', currentSessionMessages.length);
       await processStream(response, currentSession.id);
       console.log('✅ Respuesta procesada');
-      console.log('📊 Mensajes DESPUÉS de procesar respuesta:', messages.length);
+      console.log('📊 Mensajes DESPUÉS de procesar respuesta:', currentSessionMessages.length);
 
       console.log('🏁 === FIN ENVÍO MENSAJE ===');
     } catch (error) {
@@ -292,16 +334,6 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   };
-
-  // Crear nueva sesión
-  const handleNewSession = useCallback(async () => {
-    try {
-      setIsModalOpen(true);
-      setEditingSession(null);
-    } catch (error) {
-      console.error('Error creating new session:', error);
-    }
-  }, []);
 
   // Guardar nombre de sesión (nueva o editada)
   const handleSaveSessionName = useCallback(async (name: string) => {
@@ -497,12 +529,27 @@ const App: React.FC = () => {
   }, []);
 
   // Si la base de datos no está inicializada, mostrar loading
-  if (!currentSession) {
+  if (isInitializing || (!currentSession && sessions.length === 0)) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando sesión...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            {isInitializing ? 'Inicializando aplicación...' : 'Cargando sesión...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si no hay sesión actual pero hay sesiones disponibles, seleccionar la primera
+  if (!currentSession && sessions.length > 0) {
+    setCurrentSessionId(sessions[0].id);
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Inicializando sesión...</p>
         </div>
       </div>
     );
@@ -544,7 +591,7 @@ const App: React.FC = () => {
         </div>
         
         <ChatWindow
-          messages={messages}
+          messages={currentSessionMessages}
           isLoading={isLoading}
           currentPhase={currentPhase}
           onToggleInsight={handleToggleInsight}
@@ -577,7 +624,7 @@ const App: React.FC = () => {
           currentPhase: session.currentPhase,
           createdAt: session.createdAt,
           images: getSessionImages(session.id),
-          messageCount: messages.length // Por ahora, todos los mensajes
+          messageCount: getSessionMessages(session.id).length // Usar mensajes de la sesión específica
         }))}
         isOpen={isGalleryOpen}
         onClose={handleCloseGallery}

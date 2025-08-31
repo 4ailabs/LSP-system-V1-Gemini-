@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 
 export interface SimpleMessage {
   id: string;
+  sessionId: string; // Agregar sessionId para asociar mensajes con sesiones
   role: string;
   content: string;
   isInsight: boolean;
@@ -106,7 +107,7 @@ export const useLocalDatabase = () => {
   // Eliminar sesión
   const deleteSession = useCallback(async (sessionId: string) => {
     const newSessions = sessions.filter(session => session.id !== sessionId);
-    const newMessages = messages.filter(message => message.id !== sessionId);
+    const newMessages = messages.filter(message => message.sessionId !== sessionId);
     const newImages = images.filter(image => image.sessionId !== sessionId);
     
     saveSessions(newSessions);
@@ -114,11 +115,16 @@ export const useLocalDatabase = () => {
     saveImages(newImages);
   }, [sessions, messages, images, saveSessions, saveMessages, saveImages]);
 
-  // Agregar mensaje
+  // Agregar mensaje a una sesión específica
   const addMessage = useCallback(async (message: SimpleMessage) => {
     const newMessages = [...messages, message];
     saveMessages(newMessages);
   }, [messages, saveMessages]);
+
+  // Obtener mensajes de una sesión específica
+  const getSessionMessages = useCallback((sessionId: string): SimpleMessage[] => {
+    return messages.filter(message => message.sessionId === sessionId);
+  }, [messages]);
 
   // Agregar imagen a una sesión
   const addImageToSession = useCallback(async (sessionId: string, title: string, imageData: string) => {
@@ -158,6 +164,7 @@ export const useLocalDatabase = () => {
     updateSession,
     deleteSession,
     addMessage,
+    getSessionMessages,
     addImageToSession,
     getSessionImages,
     deleteImage
