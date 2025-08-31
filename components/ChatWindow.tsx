@@ -28,15 +28,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   if (messages.length === 0 && !isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
-        <div className="text-center max-w-md mx-auto">
-          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-3">
-            <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">LSP</span>
-            </div>
+         <div className="text-center max-w-2xl mx-auto">
+          {/* 4 Barras de Colores LEGO® */}
+          <div className="flex justify-center space-x-2 mb-4">
+            <div className="w-3 h-12 bg-red-600 rounded-full"></div>
+            <div className="w-3 h-12 bg-yellow-400 rounded-full"></div>
+            <div className="w-3 h-12 bg-blue-500 rounded-full"></div>
+            <div className="w-3 h-12 bg-green-500 rounded-full"></div>
           </div>
           
           <h1 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
-            LEGO® Serious Play®
+            LSP Insight System
           </h1>
           
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">

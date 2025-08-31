@@ -9,7 +9,8 @@ import {
   Pause,
   CheckCircle,
   Edit3,
-  Images
+  Images,
+  RotateCcw
 } from 'lucide-react';
 import { LspPhase } from '../types';
 import { PHASE_DESCRIPTIONS } from '../constants';
@@ -29,11 +30,13 @@ interface SidebarProps {
     content: string;
     isInsight: boolean;
   }>;
+  currentSessionId?: string;
   onNewSession: () => void;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onEditSessionName: (sessionId: string, newName: string) => void;
   onOpenGallery: () => void;
+  onResetSession: () => void;
   isMobile?: boolean;
 }
 
@@ -41,11 +44,13 @@ const Sidebar: React.FC<SidebarProps> = ({
   sessions,
   currentPhase,
   messages,
+  currentSessionId,
   onNewSession,
   onSelectSession,
   onDeleteSession,
   onEditSessionName,
   onOpenGallery,
+  onResetSession,
   isMobile = false
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -239,43 +244,46 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Botón de Reinicialización */}
+          {currentSessionId && (
+            <div className="space-y-2 sm:space-y-3">
+              <button
+                onClick={onResetSession}
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-medium py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 sm:space-x-3"
+                title="Reinicializar sesión sin borrar historial"
+              >
+                <RotateCcw size={14} className="sm:w-4 sm:h-4" />
+                <span>Reinicializar Sesión</span>
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Footer */}
-        <div className="mt-auto p-4 border-t border-slate-200 dark:border-slate-600">
-            <div className="text-center space-y-3">
-              {/* Logo y título principal */}
-              <div className="flex items-center justify-center space-x-2 mb-3">
-                <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">LSP</span>
-                </div>
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  LEGO® Serious Play®
-                </h3>
-              </div>
-              
-              {/* Gemini AI */}
-              <div className="flex items-center justify-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
-                <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
-                <span>Gemini AI</span>
-              </div>
-              
-              {/* Separador */}
-              <div className="w-16 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent mx-auto"></div>
-              
-              {/* 4ailabs branding */}
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                <span className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer">
-                  4ailabs
-                </span>
-              </div>
-              
-              {/* Versión */}
-              <div className="text-xs text-slate-400 dark:text-slate-500">
-                v1.0.0
-              </div>
+        {/* Footer con Colores LEGO® */}
+        <div className="mt-auto p-2 sm:p-3 border-t border-slate-200 dark:border-slate-600">
+          <div className="text-center space-y-2">
+            {/* 4 Barras de Colores LEGO® */}
+            <div className="flex justify-center space-x-1 mb-2">
+              <div className="w-2 h-6 bg-red-600 rounded-full"></div>
+              <div className="w-2 h-6 bg-yellow-400 rounded-full"></div>
+              <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+              <div className="w-2 h-6 bg-green-500 rounded-full"></div>
+            </div>
+            
+            {/* Título */}
+            <h3 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              LSP Insight System
+            </h3>
+            
+            {/* 4ailabs branding */}
+            <div className="text-xs text-slate-500 dark:text-slate-400">
+              <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                4ailabs
+              </span>
             </div>
           </div>
+        </div>
       </div>
 
       <SessionNameModal

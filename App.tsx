@@ -369,17 +369,38 @@ const App: React.FC = () => {
       
       let response;
       try {
-        response = await chatRef.current.sendMessageStream([
-          {
-            text: imageData ? `Imagen: ${text}` : text
-          },
-          ...(imageData ? [{
-            inlineData: {
-              data: imageData.split(',')[1], // Remover el prefijo data:image/...;base64,
-              mimeType: 'image/jpeg'
-            }
-          }] : [])
-        ]);
+        // Intentar diferentes formatos para Gemini
+        console.log('Intentando enviar mensaje con texto:', text);
+        
+                          if (imageData) {
+           // Mensaje con imagen - usar API correcta de Gemini
+           console.log('Enviando mensaje con imagen usando ai.models.generateContentStream');
+           response = await chatRef.current.ai.models.generateContentStream({
+             model: chatRef.current.model,
+             contents: [
+               text,
+               {
+                 inlineData: {
+                   data: imageData.split(',')[1],
+                   mimeType: 'image/jpeg'
+                 }
+               }
+             ],
+             config: {
+               systemInstruction: chatRef.current.systemPrompt
+             }
+           });
+         } else {
+           // Solo texto - usar API correcta de Gemini
+           console.log('Enviando solo texto usando ai.models.generateContentStream');
+           response = await chatRef.current.ai.models.generateContentStream({
+             model: chatRef.current.model,
+             contents: text, // Solo el string, el SDK lo envuelve automáticamente
+             config: {
+               systemInstruction: chatRef.current.systemPrompt
+             }
+           });
+         }
         
         console.log('Respuesta de Gemini recibida:', response);
       } catch (geminiError) {
@@ -493,6 +514,27 @@ const App: React.FC = () => {
       console.error('Error loading session:', error);
     }
   }, []);
+
+  // Reinicializar sesión actual sin borrarla
+  const handleResetSession = useCallback(async () => {
+    if (!currentSessionId) return;
+    
+    try {
+      // Reinicializar chat manteniendo la sesión
+      chatRef.current = startChatSession();
+      
+      // Resetear fase a IDENTIFICATION
+      setCurrentPhase(LspPhase.IDENTIFICATION);
+      await updateSession(currentSessionId, { currentPhase: LspPhase.IDENTIFICATION });
+      
+      // Mostrar confirmación
+      alert('Sesión reinicializada. Puedes comenzar una nueva conversación manteniendo el historial.');
+      
+    } catch (error) {
+      console.error('Error reinicializando sesión:', error);
+      alert('Error al reinicializar la sesión');
+    }
+  }, [currentSessionId, updateSession]);
 
   // Eliminar sesión
   const handleDeleteSession = useCallback(async (sessionId: string) => {
@@ -649,11 +691,13 @@ const App: React.FC = () => {
           sessions={sessions}
           currentPhase={currentPhase}
           messages={messages}
+          currentSessionId={currentSessionId}
           onNewSession={handleNewSession}
           onSelectSession={handleSelectSession}
           onDeleteSession={handleDeleteSession}
           onEditSessionName={handleSaveSessionName}
           onOpenGallery={handleOpenGallery}
+          onResetSession={handleResetSession}
         />
       </div>
       
@@ -686,6 +730,7 @@ const App: React.FC = () => {
                 sessions={sessions}
                 currentPhase={currentPhase}
                 messages={messages}
+                currentSessionId={currentSessionId}
                 onNewSession={() => {
                   handleNewSession();
                   setIsMobileMenuOpen(false);
@@ -700,6 +745,7 @@ const App: React.FC = () => {
                   handleOpenGallery();
                   setIsMobileMenuOpen(false);
                 }}
+                onResetSession={handleResetSession}
               />
             </div>
           </div>

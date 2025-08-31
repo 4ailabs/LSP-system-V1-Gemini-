@@ -1,6 +1,6 @@
 import React from 'react';
 import { marked } from 'marked';
-import { Star, Copy, Check, Volume2, PauseCircle, User } from 'lucide-react';
+import { Star, Copy, Check, Volume2, PauseCircle } from 'lucide-react';
 
 interface MessageProps {
   message: {
@@ -28,11 +28,7 @@ const MessageComponent: React.FC<MessageProps> = ({
 }) => {
   const isUser = message.role === 'user';
 
-  const UserIcon = () => (
-    <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0">
-      <User className="w-4 h-4 text-white" />
-    </div>
-  );
+
 
   return (
     <div className="group flex items-start gap-3 sm:gap-6 my-4 sm:my-8">
@@ -41,27 +37,19 @@ const MessageComponent: React.FC<MessageProps> = ({
         <>
           <div className="flex-1" />
           <div className="max-w-[85%] sm:max-w-3xl text-right">
-            <div className="inline-block bg-blue-600 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-2xl rounded-tr-sm">
-              <p 
-                style={{
-                  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                }}
-                className="leading-relaxed text-sm sm:text-base font-medium"
-              >
-                {message.content}
-              </p>
-            </div>
-          </div>
-          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-slate-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <User className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+            <p 
+              style={{
+                fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+              }}
+              className="leading-relaxed text-sm sm:text-base font-medium text-slate-800 dark:text-white"
+            >
+              {message.content}
+            </p>
           </div>
         </>
       ) : (
         // Respuesta de la IA - alineada a la izquierda
         <>
-          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs sm:text-sm font-bold">LSP</span>
-          </div>
           <div className="flex-1 min-w-0">
             <div className="text-slate-800 dark:text-white">
               <div
