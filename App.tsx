@@ -278,11 +278,18 @@ const App: React.FC = () => {
   // Función para enviar mensaje
   const handleSendMessage = async (text: string, imageData?: string) => {
     if (!currentSession || !text.trim()) return;
+    
+    // Verificar que el chat esté inicializado
+    if (!chatRef.current) {
+      console.error('❌ Chat no inicializado');
+      alert('Error: Chat no inicializado. Por favor, recarga la página.');
+      return;
+    }
 
     try {
       setIsLoading(true);
       console.log('🚀 === INICIO ENVÍO MENSAJE ===');
-      console.log('📊 Mensajes ANTES de enviar:', messages.length);
+      console.log('📊 Mensajes ANTES de enviar:', currentSessionMessages.length);
       console.log('📝 Contenido del mensaje:', text);
 
       // Crear mensaje del usuario
@@ -318,7 +325,7 @@ const App: React.FC = () => {
         }] : [])
       ]);
 
-      console.log('🤖 Respuesta de Gemini recibida (primeros 100 chars):', response.response.text().substring(0, 100));
+      console.log('🤖 Respuesta de Gemini recibida');
 
       // Procesar respuesta
       console.log('📊 Mensajes ANTES de procesar respuesta:', currentSessionMessages.length);
@@ -329,7 +336,21 @@ const App: React.FC = () => {
       console.log('🏁 === FIN ENVÍO MENSAJE ===');
     } catch (error) {
       console.error('❌ Error sending message:', error);
-      alert('Error al enviar el mensaje. Por favor, intenta de nuevo.');
+      
+      // Mostrar error más específico
+      let errorMessage = 'Error al enviar el mensaje. Por favor, intenta de nuevo.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
+        } else if (error.message.includes('API key') || error.message.includes('authentication')) {
+          errorMessage = 'Error de autenticación. Contacta al administrador.';
+        } else if (error.message.includes('quota') || error.message.includes('limit')) {
+          errorMessage = 'Límite de uso alcanzado. Intenta más tarde.';
+        }
+      }
+      
+      alert(errorMessage);
     } finally {
       setIsLoading(false);
     }
