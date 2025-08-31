@@ -75,7 +75,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
               <span className="text-xs sm:text-sm lg:text-base text-slate-600 dark:text-slate-400 font-medium">
-                Gemini está pensando...
+                Pensando...
               </span>
             </div>
           </div>
