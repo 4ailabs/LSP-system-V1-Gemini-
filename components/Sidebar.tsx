@@ -34,6 +34,7 @@ interface SidebarProps {
   onDeleteSession: (sessionId: string) => void;
   onEditSessionName: (sessionId: string, newName: string) => void;
   onOpenGallery: () => void;
+  isMobile?: boolean;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -44,7 +45,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSelectSession,
   onDeleteSession,
   onEditSessionName,
-  onOpenGallery
+  onOpenGallery,
+  isMobile = false
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<{ id: string; name: string } | null>(null);
@@ -72,16 +74,18 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      <div className="w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-300 dark:border-slate-600 flex flex-col h-full">
-        {/* Header */}
-        <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700">
-          <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-            LSP Insight System
-          </h1>
-          <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
-            Facilitador LEGO® Serious Play®
-          </p>
-        </div>
+      <div className={`${isMobile ? 'w-full' : 'w-80'} bg-slate-100 dark:bg-slate-800 ${!isMobile ? 'border-r border-slate-300 dark:border-slate-600' : ''} flex flex-col h-full`}>
+        {/* Header - Solo en desktop */}
+        {!isMobile && (
+          <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700">
+            <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+              LSP Insight System
+            </h1>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
+              Facilitador LEGO® Serious Play®
+            </p>
+          </div>
+        )}
 
         {/* Sesiones */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4">

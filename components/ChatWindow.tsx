@@ -49,9 +49,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   return (
     <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900">
-      <div className="max-w-4xl mx-auto p-3 sm:p-4 lg:p-6">
+      <div className="max-w-4xl mx-auto p-2 sm:p-4 lg:p-6">
         {/* Mensajes */}
-        <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-6">
           {messages.map((message) => (
             <Message
               key={message.id}
@@ -65,22 +65,22 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
         {/* Indicador de carga */}
         {isLoading && (
-          <div className="flex items-center justify-center py-6 sm:py-8">
-            <div className="flex items-center space-x-2 sm:space-x-3 bg-white dark:bg-slate-800 px-4 sm:px-6 py-3 sm:py-4 rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm">
+          <div className="flex items-center justify-center py-4 sm:py-6 lg:py-8">
+            <div className="flex items-center space-x-2 sm:space-x-3 bg-white dark:bg-slate-800 px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 rounded-lg border border-slate-200 dark:border-slate-600 shadow-sm">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                 <div className="w-2 h-2 sm:w-3 sm:h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
-              <span className="text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium">
+              <span className="text-xs sm:text-sm lg:text-base text-slate-600 dark:text-slate-400 font-medium">
                 Gemini está pensando...
               </span>
             </div>
           </div>
         )}
 
-        {/* Espacio al final para scroll */}
-        <div className="h-20 sm:h-24 md:h-32"></div>
+        {/* Espacio al final para scroll - móvil necesita menos espacio */}
+        <div className="h-16 sm:h-20 lg:h-24"></div>
       </div>
     </div>
   );

@@ -37,6 +37,9 @@ const App: React.FC = () => {
   // Estado para el modal de subida de imágenes
   const [isImageUploadOpen, setIsImageUploadOpen] = useState(false);
   
+  // Estado para el menú móvil
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
   // Estado para la sesión actual
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
   
@@ -578,7 +581,7 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-white dark:bg-slate-900">
-      {/* Sidebar - Oculto en móviles */}
+      {/* Sidebar - Desktop */}
       <div className="hidden lg:block">
         <Sidebar
           sessions={sessions}
@@ -592,22 +595,86 @@ const App: React.FC = () => {
         />
       </div>
       
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="absolute inset-y-0 left-0 w-80 max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="h-full overflow-y-auto bg-white dark:bg-slate-900">
+              {/* Botón cerrar */}
+              <div className="sticky top-0 bg-slate-100 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-600 z-10">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Menú</h2>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              
+              {/* Sidebar en móvil */}
+              <Sidebar
+                sessions={sessions}
+                currentPhase={currentPhase}
+                messages={messages}
+                onNewSession={() => {
+                  handleNewSession();
+                  setIsMobileMenuOpen(false);
+                }}
+                onSelectSession={(sessionId) => {
+                  handleSelectSession(sessionId);
+                  setIsMobileMenuOpen(false);
+                }}
+                onDeleteSession={handleDeleteSession}
+                onEditSessionName={handleSaveSessionName}
+                onOpenGallery={() => {
+                  handleOpenGallery();
+                  setIsMobileMenuOpen(false);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Contenido principal - Full width en móviles */}
       <div className="flex-1 flex flex-col w-full lg:w-auto">
         {/* Header móvil con botón de menú */}
         <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 p-3 sm:p-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
-              LSP Insight System
-            </h1>
-            <button
-              onClick={() => {/* TODO: Implementar menú móvil */}}
-              className="p-1.5 sm:p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-xs font-bold">LSP</span>
+              </div>
+              <div>
+                <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
+                  LSP Insight
+                </h1>
+                {currentSession && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
+                    {currentSession.name}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              {/* Indicador de fase actual en móvil */}
+              <div className="hidden xs:flex items-center bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded-full">
+                <span className="text-xs font-medium text-blue-800 dark:text-blue-200">Fase {currentPhase}</span>
+              </div>
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="p-1.5 sm:p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                aria-label="Abrir menú"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
         
