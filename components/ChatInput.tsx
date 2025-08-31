@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Send, Image as ImageIcon, X } from 'lucide-react';
+import { SendHorizontal, Image as ImageIcon, X } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (text: string, imageData?: string) => void;
@@ -133,12 +133,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
           <button
             type="submit"
             disabled={!message.trim() || isLoading}
-            className="flex-shrink-0 p-3 sm:p-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center"
+            className="flex-shrink-0 p-3 sm:p-4 bg-gray-200 hover:bg-gray-300 disabled:bg-slate-400 text-gray-700 hover:text-gray-800 rounded-full transition-colors disabled:opacity-50 flex items-center justify-center border border-gray-300"
           >
             {isLoading ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
             ) : (
-              <Send size={20} className="sm:w-5 sm:h-5" />
+              <SendHorizontal size={20} className="sm:w-5 sm:h-5" />
             )}
           </button>
         </div>
@@ -152,10 +152,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
           className="hidden"
         />
 
-        {/* Información de ayuda para móviles - solo visible en móviles pequeños */}
-        <div className="sm:hidden text-xs text-slate-500 dark:text-slate-400 text-center">
-          <p>Toca 📷 para subir fotos • Máx. 5MB</p>
-        </div>
+
       </form>
     </div>
   );

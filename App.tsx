@@ -52,8 +52,8 @@ const App: React.FC = () => {
   // Obtener la sesión actual
   const currentSession = sessions.find(s => s.id === currentSessionId);
 
-  // Obtener mensajes de la sesión actual
-  const currentSessionMessages = getSessionMessages(currentSessionId);
+  // Estado local para mensajes de la sesión actual
+  const [currentSessionMessages, setCurrentSessionMessages] = useState<SimpleMessage[]>([]);
 
   // Inicializar con la primera sesión si existe
   useEffect(() => {
@@ -104,6 +104,14 @@ const App: React.FC = () => {
       setCurrentPhase(currentSession.currentPhase);
     }
   }, [currentSession]);
+
+  // Sincronizar mensajes cuando cambie la sesión
+  useEffect(() => {
+    if (currentSessionId) {
+      const messages = getSessionMessages(currentSessionId);
+      setCurrentSessionMessages(messages);
+    }
+  }, [currentSessionId, getSessionMessages]);
 
   // Scroll al final del chat
   useEffect(() => {
@@ -355,8 +363,12 @@ const App: React.FC = () => {
 
       // Agregar mensaje del usuario
       await addMessage(userMessage);
-              console.log('Mensaje del usuario agregado:', userMessage);
-              console.log('Mensajes DESPUÉS del usuario:', currentSessionMessages.length);
+      
+      // Actualizar estado local inmediatamente
+      setCurrentSessionMessages(prev => [...prev, userMessage]);
+      
+      console.log('Mensaje del usuario agregado:', userMessage);
+      console.log('Mensajes DESPUÉS del usuario:', currentSessionMessages.length + 1);
 
       // Si hay imagen, guardarla en la base de datos
       if (imageData) {
@@ -393,9 +405,19 @@ const App: React.FC = () => {
          } else {
            // Solo texto - usar API correcta de Gemini
            console.log('Enviando solo texto usando ai.models.generateContentStream');
+           
+           // Construir historial completo para mantener contexto
+           const conversationHistory = currentSessionMessages.map(msg => ({
+             role: msg.role === 'user' ? 'user' : 'model',
+             parts: [{ text: msg.content }]
+           }));
+           
+           // Agregar el mensaje actual
+           const currentMessage = { role: 'user', parts: [{ text }] };
+           
            response = await chatRef.current.ai.models.generateContentStream({
              model: chatRef.current.model,
-             contents: text, // Solo el string, el SDK lo envuelve automáticamente
+             contents: [...conversationHistory, currentMessage],
              config: {
                systemInstruction: chatRef.current.systemPrompt
              }
@@ -585,7 +607,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Toggle speech (text-to-speech)
+  // Toggle speech (text-to-speech) con Gemini TTS nativo
   const handleToggleSpeech = useCallback(async (message: any) => {
     try {
       // Si ya hay algo reproduciéndose, detenerlo
@@ -606,24 +628,86 @@ const App: React.FC = () => {
         .replace(/^\d+\.\s*/gm, '• ') // Convertir listas numeradas a viñetas
         .trim();
 
+      // Intentar usar Gemini TTS nativo primero
+      if (chatRef.current && chatRef.current.model === 'gemini-2.0-flash-001') {
+        try {
+          console.log('Intentando usar Gemini TTS nativo...');
+          
+          // Usar Gemini TTS nativo
+          const response = await chatRef.current.ai.models.generateContent({
+            model: 'gemini-2.0-flash-001',
+            contents: `Lee este texto en voz alta en ESPAÑOL con una voz natural y clara, sin acento ruso: ${cleanContent}`,
+            config: {
+              systemInstruction: 'Eres un asistente de TTS que lee texto en voz alta EN ESPAÑOL. Debes usar una voz clara y natural en español, sin acentos extranjeros. Responde solo con el audio del texto proporcionado.',
+              generationConfig: {
+                responseMimeType: 'audio/mp3',
+                languageCode: 'es-ES'
+              }
+            }
+          });
+          
+          if (response.audio) {
+            console.log('Gemini TTS nativo funcionando!');
+            // Reproducir audio de Gemini
+            const audioBlob = new Blob([response.audio], { type: 'audio/mp3' });
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+            return;
+          }
+        } catch (geminiTtsError) {
+          console.log('Gemini TTS no disponible, usando Web Speech API:', geminiTtsError);
+        }
+      }
+
+      // Fallback a Web Speech API mejorada
+      console.log('Usando Web Speech API como fallback...');
+      
       // Crear utterance para la síntesis de voz
       const utterance = new SpeechSynthesisUtterance(cleanContent);
       
-      // Configurar voz en español si está disponible
+      // Obtener voces disponibles y configurar la mejor
       const voices = window.speechSynthesis.getVoices();
-      const spanishVoice = voices.find(voice => 
+      
+      // PRIORIDAD 1: Voces en español específicamente
+      let bestVoice = voices.find(voice => 
         voice.lang.startsWith('es') || voice.lang.startsWith('es-')
       );
       
-      if (spanishVoice) {
-        utterance.voice = spanishVoice;
+      // PRIORIDAD 2: Si no hay español, buscar voces premium en español
+      if (!bestVoice) {
+        bestVoice = voices.find(voice => 
+          (voice.name.includes('Google') || voice.name.includes('Premium') || voice.name.includes('Natural')) &&
+          (voice.lang.startsWith('es') || voice.lang.startsWith('es-'))
+        );
       }
       
-      // Configurar propiedades de la voz
-      utterance.lang = 'es-ES';
-      utterance.rate = 0.9; // Velocidad ligeramente más lenta
-      utterance.pitch = 1.0; // Tono normal
-      utterance.volume = 1.0; // Volumen máximo
+      // PRIORIDAD 3: Si no hay español, buscar voces premium en general
+      if (!bestVoice) {
+        bestVoice = voices.find(voice => 
+          voice.name.includes('Google') || 
+          voice.name.includes('Premium') || 
+          voice.name.includes('Natural') ||
+          voice.name.includes('Enhanced')
+        );
+      }
+      
+      // PRIORIDAD 4: Como último recurso, usar la primera voz disponible
+      if (!bestVoice && voices.length > 0) {
+        bestVoice = voices[0];
+        console.log('⚠️ No se encontró voz en español, usando:', bestVoice.name, bestVoice.lang);
+      }
+      
+      if (bestVoice) {
+        utterance.voice = bestVoice;
+        console.log('Using voice:', bestVoice.name, bestVoice.lang);
+      }
+      
+      // Configurar propiedades optimizadas para mejor calidad
+      utterance.lang = bestVoice?.lang || 'es-ES';
+      utterance.rate = 0.85; // Velocidad más lenta para mejor claridad
+      utterance.pitch = 1.1; // Tono ligeramente más alto para menos robótico
+      utterance.volume = 0.9; // Volumen alto pero no máximo
       
       // Eventos para manejar el estado
       utterance.onstart = () => {
@@ -758,8 +842,12 @@ const App: React.FC = () => {
         <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xs font-bold">LSP</span>
+              {/* 4 Barras de Colores LEGO® */}
+              <div className="flex space-x-1">
+                <div className="w-1.5 h-6 bg-red-600 rounded-full"></div>
+                <div className="w-1.5 h-6 bg-yellow-400 rounded-full"></div>
+                <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+                <div className="w-1.5 h-6 bg-green-500 rounded-full"></div>
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
