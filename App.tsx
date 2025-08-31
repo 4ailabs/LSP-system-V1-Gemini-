@@ -217,8 +217,8 @@ const App: React.FC = () => {
 
   // Procesar respuesta streaming
   const processStream = useCallback(async (response: any, sessionId: string) => {
-    console.log('🔄 === INICIO PROCESAMIENTO STREAM ===');
-    console.log('📊 Mensajes ANTES de processStream:', currentSessionMessages.length);
+            console.log('=== INICIO PROCESAMIENTO STREAM ===');
+            console.log('Mensajes ANTES de processStream:', currentSessionMessages.length);
 
     try {
       let responseText = '';
@@ -250,8 +250,8 @@ const App: React.FC = () => {
 
       // Agregar mensaje del modelo
       await addMessage(modelMessage);
-      console.log('✅ Mensaje del modelo agregado:', modelMessage);
-      console.log('📊 Mensajes DESPUÉS de agregar modelo:', currentSessionMessages.length);
+              console.log('Mensaje del modelo agregado:', modelMessage);
+              console.log('Mensajes DESPUÉS de agregar modelo:', currentSessionMessages.length);
 
       // Actualizar fase si es necesario
       if (phaseUpdates.length > 0) {
@@ -269,9 +269,9 @@ const App: React.FC = () => {
         console.log('🏁 Fase actualizada a EVALUACIÓN (sesión concluida)');
       }
 
-      console.log('🏁 === FIN PROCESAMIENTO STREAM ===');
+              console.log('=== FIN PROCESAMIENTO STREAM ===');
     } catch (error) {
-      console.error('❌ Error processing stream:', error);
+              console.error('Error processing stream:', error);
     }
   }, [addMessage, updateSession, cleanGeminiResponse, extractPhaseUpdates, detectSessionConclusion, currentPhase, currentSessionMessages]);
 
@@ -281,16 +281,16 @@ const App: React.FC = () => {
     
     // Verificar que el chat esté inicializado
     if (!chatRef.current) {
-      console.error('❌ Chat no inicializado');
+                console.error('Chat no inicializado');
       alert('Error: Chat no inicializado. Por favor, recarga la página.');
       return;
     }
 
     try {
       setIsLoading(true);
-      console.log('🚀 === INICIO ENVÍO MENSAJE ===');
-      console.log('📊 Mensajes ANTES de enviar:', currentSessionMessages.length);
-      console.log('📝 Contenido del mensaje:', text);
+      console.log('=== INICIO ENVÍO MENSAJE ===');
+              console.log('Mensajes ANTES de enviar:', currentSessionMessages.length);
+              console.log('Contenido del mensaje:', text);
 
       // Crear mensaje del usuario
       const userMessage: SimpleMessage = {
@@ -304,8 +304,8 @@ const App: React.FC = () => {
 
       // Agregar mensaje del usuario
       await addMessage(userMessage);
-      console.log('✅ Mensaje del usuario agregado:', userMessage);
-      console.log('📊 Mensajes DESPUÉS del usuario:', currentSessionMessages.length);
+              console.log('Mensaje del usuario agregado:', userMessage);
+              console.log('Mensajes DESPUÉS del usuario:', currentSessionMessages.length);
 
       // Si hay imagen, guardarla en la base de datos
       if (imageData) {
@@ -325,17 +325,17 @@ const App: React.FC = () => {
         }] : [])
       ]);
 
-      console.log('🤖 Respuesta de Gemini recibida');
+      console.log('Respuesta de Gemini recibida');
 
       // Procesar respuesta
-      console.log('📊 Mensajes ANTES de procesar respuesta:', currentSessionMessages.length);
+              console.log('Mensajes ANTES de procesar respuesta:', currentSessionMessages.length);
       await processStream(response, currentSession.id);
-      console.log('✅ Respuesta procesada');
-      console.log('📊 Mensajes DESPUÉS de procesar respuesta:', currentSessionMessages.length);
+              console.log('Respuesta procesada');
+              console.log('Mensajes DESPUÉS de procesar respuesta:', currentSessionMessages.length);
 
-      console.log('🏁 === FIN ENVÍO MENSAJE ===');
+              console.log('=== FIN ENVÍO MENSAJE ===');
     } catch (error) {
-      console.error('❌ Error sending message:', error);
+              console.error('Error sending message:', error);
       
       // Mostrar error más específico
       let errorMessage = 'Error al enviar el mensaje. Por favor, intenta de nuevo.';
@@ -447,7 +447,7 @@ const App: React.FC = () => {
 
     try {
       const chatText = messages
-        .map(msg => `${msg.role === 'user' ? '👤 Tú' : '🤖 Facilitador LSP'}: ${msg.content}`)
+        .map(msg => `${msg.role === 'user' ? 'Tú' : 'Facilitador LSP'}: ${msg.content}`)
         .join('\n\n');
       
       await navigator.clipboard.writeText(chatText);

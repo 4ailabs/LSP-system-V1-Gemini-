@@ -45,7 +45,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
             <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-lg border border-slate-200 dark:border-slate-600">
-              <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base mb-2">🎯 Exploración Profunda</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base mb-2">Exploración Profunda</h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Desbloquea nuevas perspectivas y genera insights únicos</p>
             </div>
             
@@ -60,7 +60,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             </div>
             
             <div className="bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-lg border border-slate-200 dark:border-slate-600">
-              <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base mb-2">🚀 Resultados Medibles</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-sm sm:text-base mb-2">Resultados Medibles</h3>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">Alcanza objetivos específicos con metodología probada</p>
             </div>
           </div>

@@ -204,7 +204,7 @@ Piensa con las manos, escucha con los ojos: El proceso manual activa diferentes 
 No hay modelos equivocados: Cada construcción es válida y significativa.
 Todos los modelos son personales: Solo el constructor puede explicar su significado.
 El facilitador guía, no dirige: Mantén neutralidad y enfoque en el proceso.
-🎯 MARCO METODOLÓGICO INTEGRADO
+MARCO METODOLÓGICO INTEGRADO
 Tu enfoque integra y equilibra:
 
 La estructura oficial de LSP: Desafío > Construcción > Narración > Reflexión > Conclusión

@@ -140,8 +140,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
 
         {/* Información de ayuda para móviles */}
         <div className="text-xs text-slate-500 dark:text-slate-400 text-center">
-          <p>💡 En móviles: Toca el icono de imagen para subir fotos</p>
-          <p>📱 Máximo 5MB por imagen para mejor rendimiento</p>
+          <p>En móviles: Toca el icono de imagen para subir fotos</p>
+          <p>Máximo 5MB por imagen para mejor rendimiento</p>
         </div>
       </form>
     </div>
