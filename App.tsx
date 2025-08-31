@@ -3,42 +3,53 @@ import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
 import Sidebar from './components/Sidebar';
 import { SessionNameModal } from './components/SessionNameModal';
+import SessionGallery from './components/SessionGallery';
+import ImageUploadModal from './components/ImageUploadModal';
 import { startChatSession } from './services/geminiService';
-import { useLocalDatabase } from './hooks/useLocalDatabase';
+import { useLocalDatabase, SimpleMessage } from './hooks/useLocalDatabase';
 import { LspPhase } from './types';
 
 const App: React.FC = () => {
   const {
-    isInitialized,
-    currentSession,
     sessions,
     messages,
     images,
-    insights,
-    phases,
     createSession,
-    loadSession,
+    updateSession,
+    deleteSession,
     addMessage,
-    addImage,
-    toggleInsight,
-    updatePhase,
-    editSessionName,
-    deleteSession
+    addImageToSession,
+    getSessionImages
   } = useLocalDatabase();
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentPhase, setCurrentPhase] = useState<LspPhase>(LspPhase.IDENTIFICATION);
+  
+  // Estados para el modal de sesiones
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<{ id: string; name: string } | null>(null);
+  
+  // Estado para la galería
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  
+  // Estado para el modal de subida de imágenes
+  const [isImageUploadOpen, setIsImageUploadOpen] = useState(false);
+  
+  // Estado para la sesión actual
+  const [currentSessionId, setCurrentSessionId] = useState<string>('');
+  
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<any>(null);
 
-  // Inicializar sesión por defecto si no hay ninguna
+  // Obtener la sesión actual
+  const currentSession = sessions.find(s => s.id === currentSessionId);
+
+  // Inicializar con la primera sesión si existe
   useEffect(() => {
-    if (isInitialized && sessions.length === 0) {
-      handleNewSession();
+    if (sessions.length > 0 && !currentSessionId) {
+      setCurrentSessionId(sessions[0].id);
     }
-  }, [isInitialized, sessions.length]);
+  }, [sessions, currentSessionId]);
 
   // Sincronizar fase actual con la sesión activa
   useEffect(() => {
@@ -54,10 +65,10 @@ const App: React.FC = () => {
 
   // Inicializar chat de Gemini
   useEffect(() => {
-    if (isInitialized) {
+    if (currentSession) {
       chatRef.current = startChatSession();
     }
-  }, [isInitialized]);
+  }, [currentSession]);
 
   // Extraer actualizaciones de fase del texto
   const extractPhaseUpdates = useCallback((text: string): LspPhase[] => {
@@ -164,144 +175,123 @@ const App: React.FC = () => {
     return conclusionPatterns.some(pattern => lowerText.includes(pattern));
   }, []);
 
-  // Procesar respuesta streaming de Gemini
-  const processStream = useCallback(async (responseText: string, sessionId: string) => {
-    try {
-      console.log('🔄 === INICIO PROCESAMIENTO STREAM ===');
-      console.log('📊 Mensajes ANTES de processStream:', messages.length);
-      
-      // Limpiar respuesta de comandos técnicos
-      const cleanText = cleanGeminiResponse(responseText);
-      console.log('🧹 Texto limpio:', cleanText.substring(0, 100));
-      
-      // Extraer actualizaciones de fase de la respuesta original
-      const phaseUpdates = extractPhaseUpdates(responseText);
-      console.log('📈 Actualizaciones de fase detectadas:', phaseUpdates);
-      
-      // Detectar si la sesión ha concluido
-      const isSessionConcluded = detectSessionConclusion(responseText);
-      console.log('🏁 Sesión concluida detectada:', isSessionConcluded);
-      
-      // Agregar respuesta limpia del modelo a la base de datos
-      const modelMessage = await addMessage(cleanText, 'model', sessionId);
-      console.log('✅ Mensaje del modelo agregado:', modelMessage);
-      console.log('📊 Mensajes DESPUÉS de agregar modelo:', messages.length);
-      
-      // Actualizar fase si se detectó un cambio
-      if (phaseUpdates.length > 0) {
-        const newPhase = phaseUpdates[phaseUpdates.length - 1];
-        await updatePhase(sessionId, newPhase);
-        setCurrentPhase(newPhase);
-        console.log('🔄 Fase actualizada a:', newPhase);
-      }
-      
-      // Si la sesión concluyó, asegurar que esté en la fase final
-      if (isSessionConcluded && currentPhase !== LspPhase.EVALUATION) {
-        await updatePhase(sessionId, LspPhase.EVALUATION);
-        setCurrentPhase(LspPhase.EVALUATION);
-        console.log('🏁 Fase actualizada a EVALUACIÓN (sesión concluida)');
-      }
-      
-      console.log('🏁 === FIN PROCESAMIENTO STREAM ===');
-
-    } catch (error) {
-      console.error('❌ Error processing stream:', error);
-    }
-  }, [addMessage, updatePhase, cleanGeminiResponse, extractPhaseUpdates, detectSessionConclusion, currentPhase, messages]);
-
-  // Función para enviar mensaje
-  const handleSendMessage = useCallback(async (content: string, imageData?: string, retryCount = 0) => {
-    if (!currentSession || !chatRef.current) return;
+  // Procesar respuesta streaming
+  const processStream = useCallback(async (response: any, sessionId: string) => {
+    console.log('🔄 === INICIO PROCESAMIENTO STREAM ===');
+    console.log('📊 Mensajes ANTES de processStream:', messages.length);
 
     try {
-      setIsLoading(true);
-      console.log('🚀 === INICIO ENVÍO MENSAJE ===');
-      console.log('📊 Mensajes ANTES de enviar:', messages.length);
-      console.log('📝 Contenido del mensaje:', content);
-
-      // Agregar mensaje del usuario a la base de datos
-      const userMessage = await addMessage(content, 'user', currentSession.id);
-      console.log('✅ Mensaje del usuario agregado:', userMessage);
-      console.log('📊 Mensajes DESPUÉS del usuario:', messages.length);
-      
-      // Si hay imagen, guardarla en la base de datos
-      if (imageData) {
-        await addImage(imageData, 'image/jpeg', 'Modelo construido', currentSession.id, userMessage.id);
-      }
-
-      // Preparar contenido para Gemini
-      let geminiContent;
-      if (imageData) {
-        // Crear contenido multimodal con imagen y texto
-        geminiContent = {
-          contents: [{
-            parts: [
-              {
-                text: content || "Analiza esta imagen de un modelo LEGO construido y proporciona insights sobre lo que representa."
-              },
-              {
-                inlineData: {
-                  mimeType: "image/jpeg",
-                  data: imageData.split(',')[1] // Remover el prefijo "data:image/jpeg;base64,"
-                }
-              }
-            ]
-          }]
-        };
-      } else {
-        // Solo texto
-        geminiContent = { message: content };
-      }
-
-      // Obtener respuesta de Gemini
-      let response;
-      if (imageData) {
-        // Enviar contenido multimodal
-        response = await chatRef.current.sendMessageStream(geminiContent);
-      } else {
-        // Enviar solo texto
-        response = await chatRef.current.sendMessageStream({ message: content });
-      }
-      
       let responseText = '';
       
+      // Procesar chunks de respuesta
       for await (const chunk of response) {
         if (chunk.text) {
           responseText += chunk.text;
         }
       }
-      
-      console.log('🤖 Respuesta de Gemini recibida (primeros 100 chars):', responseText.substring(0, 100));
-      console.log('📊 Mensajes ANTES de procesar respuesta:', messages.length);
-      
-      // Procesar respuesta streaming
-      await processStream(responseText, currentSession.id);
-      console.log('✅ Respuesta procesada');
-      console.log('📊 Mensajes DESPUÉS de procesar respuesta:', messages.length);
-      console.log('🏁 === FIN ENVÍO MENSAJE ===');
 
-    } catch (error: any) {
-      console.error('❌ Error sending message:', error);
-      
-      // Retry para errores de "Load failed"
-      if (error.message?.includes('Load failed') && retryCount < 3) {
-        console.log(`🔄 Retrying... Attempt ${retryCount + 1}`);
-        setTimeout(() => {
-          handleSendMessage(content, imageData, retryCount + 1);
-        }, 1000 * (retryCount + 1));
-        return;
+      // Limpiar respuesta de Gemini
+      const cleanText = cleanGeminiResponse(responseText);
+      console.log('🧹 Texto limpio:', cleanText.substring(0, 100));
+
+      // Extraer actualizaciones de fase
+      const phaseUpdates = extractPhaseUpdates(cleanText);
+      console.log('📈 Actualizaciones de fase detectadas:', phaseUpdates);
+
+      // Crear mensaje del modelo
+      const modelMessage: SimpleMessage = {
+        id: Date.now().toString(),
+        role: 'model',
+        content: cleanText,
+        isInsight: false,
+        createdAt: Date.now()
+      };
+
+      // Agregar mensaje del modelo
+      await addMessage(modelMessage);
+      console.log('✅ Mensaje del modelo agregado:', modelMessage);
+      console.log('📊 Mensajes DESPUÉS de agregar modelo:', messages.length);
+
+      // Actualizar fase si es necesario
+      if (phaseUpdates.length > 0) {
+        const newPhase = phaseUpdates[phaseUpdates.length - 1];
+        await updateSession(sessionId, { currentPhase: newPhase });
+        setCurrentPhase(newPhase);
+        console.log('🔄 Fase actualizada a:', newPhase);
       }
 
-      // Agregar mensaje de error
-      await addMessage(
-        `❌ Error: ${error.message || 'No se pudo procesar tu mensaje. Por favor, intenta de nuevo.'}`,
-        'model',
-        currentSession.id
-      );
+      // Detectar si la sesión concluyó
+      const isSessionConcluded = detectSessionConclusion(cleanText);
+      if (isSessionConcluded && currentPhase !== LspPhase.EVALUATION) {
+        await updateSession(sessionId, { currentPhase: LspPhase.EVALUATION });
+        setCurrentPhase(LspPhase.EVALUATION);
+        console.log('🏁 Fase actualizada a EVALUACIÓN (sesión concluida)');
+      }
+
+      console.log('🏁 === FIN PROCESAMIENTO STREAM ===');
+    } catch (error) {
+      console.error('❌ Error processing stream:', error);
+    }
+  }, [addMessage, updateSession, cleanGeminiResponse, extractPhaseUpdates, detectSessionConclusion, currentPhase, messages]);
+
+  // Función para enviar mensaje
+  const handleSendMessage = async (text: string, imageData?: string) => {
+    if (!currentSession || !text.trim()) return;
+
+    try {
+      setIsLoading(true);
+      console.log('🚀 === INICIO ENVÍO MENSAJE ===');
+      console.log('📊 Mensajes ANTES de enviar:', messages.length);
+      console.log('📝 Contenido del mensaje:', text);
+
+      // Crear mensaje del usuario
+      const userMessage: SimpleMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: text,
+        isInsight: false,
+        createdAt: Date.now()
+      };
+
+      // Agregar mensaje del usuario
+      await addMessage(userMessage);
+      console.log('✅ Mensaje del usuario agregado:', userMessage);
+      console.log('📊 Mensajes DESPUÉS del usuario:', messages.length);
+
+      // Si hay imagen, guardarla en la base de datos
+      if (imageData) {
+        await addImageToSession(currentSession.id, 'Modelo construido', imageData);
+      }
+
+      // Enviar mensaje a Gemini
+      const response = await chatRef.current.sendMessageStream([
+        {
+          text: imageData ? `Imagen: ${text}` : text
+        },
+        ...(imageData ? [{
+          inlineData: {
+            data: imageData.split(',')[1], // Remover el prefijo data:image/...;base64,
+            mimeType: 'image/jpeg'
+          }
+        }] : [])
+      ]);
+
+      console.log('🤖 Respuesta de Gemini recibida (primeros 100 chars):', response.response.text().substring(0, 100));
+
+      // Procesar respuesta
+      console.log('📊 Mensajes ANTES de procesar respuesta:', messages.length);
+      await processStream(response, currentSession.id);
+      console.log('✅ Respuesta procesada');
+      console.log('📊 Mensajes DESPUÉS de procesar respuesta:', messages.length);
+
+      console.log('🏁 === FIN ENVÍO MENSAJE ===');
+    } catch (error) {
+      console.error('❌ Error sending message:', error);
+      alert('Error al enviar el mensaje. Por favor, intenta de nuevo.');
     } finally {
       setIsLoading(false);
     }
-  }, [currentSession, addMessage, addImage, messages, processStream]);
+  };
 
   // Crear nueva sesión
   const handleNewSession = useCallback(async () => {
@@ -318,7 +308,7 @@ const App: React.FC = () => {
     try {
       if (editingSession) {
         // Editar sesión existente
-        await editSessionName(editingSession.id, name);
+        await updateSession(editingSession.id, { name });
       } else {
         // Crear nueva sesión
         await createSession(name);
@@ -328,34 +318,75 @@ const App: React.FC = () => {
     } catch (error) {
       console.error('Error saving session name:', error);
     }
-  }, [editingSession, editSessionName, createSession]);
+  }, [editingSession, updateSession, createSession]);
 
   // Cerrar modal
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingSession(null);
-  }, []);
+  };
+
+  // Abrir galería
+  const handleOpenGallery = () => {
+    setIsGalleryOpen(true);
+  };
+
+  // Cerrar galería
+  const handleCloseGallery = () => {
+    setIsGalleryOpen(false);
+  };
+
+  // Abrir modal de subida de imágenes
+  const handleOpenImageUpload = () => {
+    setIsImageUploadOpen(true);
+  };
+
+  // Cerrar modal de subida de imágenes
+  const handleCloseImageUpload = () => {
+    setIsImageUploadOpen(false);
+  };
+
+  // Manejar subida de imagen
+  const handleUploadImage = async (sessionId: string, title: string, imageData: string) => {
+    try {
+      // Guardar imagen en la base de datos
+      await addImageToSession(sessionId, title, imageData);
+      
+      // Mostrar mensaje de éxito
+      alert('Imagen subida exitosamente a la galería');
+      
+      // Cerrar el modal
+      handleCloseImageUpload();
+      
+    } catch (error) {
+      console.error('Error al subir imagen:', error);
+      alert('Error al subir la imagen');
+    }
+  };
 
   // Seleccionar sesión
   const handleSelectSession = useCallback(async (sessionId: string) => {
     try {
-      await loadSession(sessionId);
+      setCurrentSessionId(sessionId);
       
       // Reinicializar chat para la sesión seleccionada
       chatRef.current = startChatSession();
     } catch (error) {
       console.error('Error loading session:', error);
     }
-  }, [loadSession]);
+  }, []);
 
   // Eliminar sesión
   const handleDeleteSession = useCallback(async (sessionId: string) => {
     try {
       await deleteSession(sessionId);
+      if (sessionId === currentSessionId) {
+        setCurrentSessionId('');
+      }
     } catch (error) {
       console.error('Error deleting session:', error);
     }
-  }, [deleteSession]);
+  }, [deleteSession, currentSessionId]);
 
   // Copiar chat completo
   const handleCopyChat = useCallback(async () => {
@@ -458,19 +489,20 @@ const App: React.FC = () => {
   // Toggle insight en mensaje
   const handleToggleInsight = useCallback(async (messageId: string) => {
     try {
-      await toggleInsight(messageId);
+      // TODO: Implementar lógica para toggle insight
+      console.log('Toggling insight for message:', messageId);
     } catch (error) {
       console.error('Error toggling insight:', error);
     }
-  }, [toggleInsight]);
+  }, []);
 
   // Si la base de datos no está inicializada, mostrar loading
-  if (!isInitialized) {
+  if (!currentSession) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Inicializando aplicación...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Cargando sesión...</p>
         </div>
       </div>
     );
@@ -487,7 +519,8 @@ const App: React.FC = () => {
           onNewSession={handleNewSession}
           onSelectSession={handleSelectSession}
           onDeleteSession={handleDeleteSession}
-          onEditSessionName={editSessionName}
+          onEditSessionName={handleSaveSessionName}
+          onOpenGallery={handleOpenGallery}
         />
       </div>
       
@@ -534,6 +567,30 @@ const App: React.FC = () => {
         onSave={handleSaveSessionName}
         initialName={editingSession?.name || ''}
         isEditing={!!editingSession}
+      />
+
+      {/* Galería de sesiones */}
+      <SessionGallery
+        sessions={sessions.map(session => ({
+          id: session.id,
+          name: session.name,
+          currentPhase: session.currentPhase,
+          createdAt: session.createdAt,
+          images: getSessionImages(session.id),
+          messageCount: messages.length // Por ahora, todos los mensajes
+        }))}
+        isOpen={isGalleryOpen}
+        onClose={handleCloseGallery}
+        onSelectSession={handleSelectSession}
+        onUploadImage={handleOpenImageUpload}
+      />
+
+      {/* Modal de subida de imágenes */}
+      <ImageUploadModal
+        isOpen={isImageUploadOpen}
+        onClose={handleCloseImageUpload}
+        onUploadImage={handleUploadImage}
+        sessions={sessions}
       />
     </div>
   );

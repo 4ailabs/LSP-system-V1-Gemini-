@@ -8,7 +8,8 @@ import {
   Play,
   Pause,
   CheckCircle,
-  Edit3
+  Edit3,
+  Images
 } from 'lucide-react';
 import { LspPhase } from '../types';
 import { PHASE_DESCRIPTIONS } from '../constants';
@@ -32,6 +33,7 @@ interface SidebarProps {
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onEditSessionName: (sessionId: string, newName: string) => void;
+  onOpenGallery: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -41,7 +43,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onNewSession,
   onSelectSession,
   onDeleteSession,
-  onEditSessionName
+  onEditSessionName,
+  onOpenGallery
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSession, setEditingSession] = useState<{ id: string; name: string } | null>(null);
@@ -89,6 +92,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           >
             <Plus size={18} className="sm:w-5 sm:h-5" />
             <span>Nueva Sesión</span>
+          </button>
+
+          {/* Botón Galería */}
+          <button
+            onClick={onOpenGallery}
+            className="w-full bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 sm:py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors shadow-md font-medium text-xs"
+          >
+            <Images size={18} className="sm:w-5 sm:h-5" />
+            <span>Galería de Sesiones</span>
           </button>
 
           {/* Lista de Sesiones */}
