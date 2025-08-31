@@ -48,7 +48,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900">
+    <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900 scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
       <div className="max-w-4xl mx-auto p-2 sm:p-4 lg:p-6">
         {/* Mensajes */}
         <div className="space-y-3 sm:space-y-6">

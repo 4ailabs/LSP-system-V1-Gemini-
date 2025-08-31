@@ -43,6 +43,9 @@ const App: React.FC = () => {
   // Estado para la sesión actual
   const [currentSessionId, setCurrentSessionId] = useState<string>('');
   
+  // Estado para el chat
+  const [isChatInitialized, setIsChatInitialized] = useState(false);
+  
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatRef = useRef<any>(null);
 
@@ -69,7 +72,20 @@ const App: React.FC = () => {
   // Inicializar chat de Gemini
   useEffect(() => {
     if (currentSession) {
-      chatRef.current = startChatSession();
+      try {
+        chatRef.current = startChatSession();
+        setIsChatInitialized(true);
+        console.log('Chat inicializado para sesión:', currentSession.id);
+      } catch (error) {
+        console.error('Error inicializando chat:', error);
+        setIsChatInitialized(false);
+        // Si falla la inicialización, mostrar error específico
+        if (error instanceof Error && error.message.includes('VITE_GEMINI_API_KEY')) {
+          alert('Error: API Key no configurada. Contacta al administrador.');
+        } else {
+          alert('Error al inicializar el chat. Por favor, recarga la página.');
+        }
+      }
     }
   }, [currentSession]);
 
@@ -284,9 +300,19 @@ const App: React.FC = () => {
     
     // Verificar que el chat esté inicializado
     if (!chatRef.current) {
-                console.error('Chat no inicializado');
-      alert('Error: Chat no inicializado. Por favor, recarga la página.');
-      return;
+      console.error('Chat no inicializado, intentando reinicializar...');
+      
+      try {
+        // Intentar reinicializar el chat
+        chatRef.current = startChatSession();
+        setIsChatInitialized(true);
+        console.log('Chat reinicializado exitosamente');
+      } catch (error) {
+        console.error('Error reinicializando chat:', error);
+        setIsChatInitialized(false);
+        alert('Error: No se pudo inicializar el chat. Por favor, recarga la página.');
+        return;
+      }
     }
 
     try {
@@ -344,15 +370,20 @@ const App: React.FC = () => {
       let errorMessage = 'Error al enviar el mensaje. Por favor, intenta de nuevo.';
       
       if (error instanceof Error) {
+        console.error('Error detallado:', error.message);
+        
         if (error.message.includes('network') || error.message.includes('fetch')) {
           errorMessage = 'Error de conexión. Verifica tu internet e intenta de nuevo.';
-        } else if (error.message.includes('API key') || error.message.includes('authentication')) {
+        } else if (error.message.includes('API key') || error.message.includes('authentication') || error.message.includes('VITE_GEMINI_API_KEY')) {
           errorMessage = 'Error de autenticación. Contacta al administrador.';
         } else if (error.message.includes('quota') || error.message.includes('limit')) {
           errorMessage = 'Límite de uso alcanzado. Intenta más tarde.';
+        } else if (error.message.includes('chat') || error.message.includes('session')) {
+          errorMessage = 'Error de sesión. Por favor, recarga la página.';
         }
       }
       
+      console.error('Error final:', errorMessage);
       alert(errorMessage);
     } finally {
       setIsLoading(false);
@@ -580,7 +611,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-white dark:bg-slate-900">
+    <div className="flex h-screen bg-white dark:bg-slate-900" style={{ height: '100vh', height: '100svh' }}>
       {/* Sidebar - Desktop */}
       <div className="hidden lg:block">
         <Sidebar
@@ -597,9 +628,13 @@ const App: React.FC = () => {
       
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)}>
+        <div 
+          className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" 
+          onClick={() => setIsMobileMenuOpen(false)}
+          style={{ touchAction: 'none' }}
+        >
           <div className="absolute inset-y-0 left-0 w-80 max-w-sm" onClick={(e) => e.stopPropagation()}>
-            <div className="h-full overflow-y-auto bg-white dark:bg-slate-900">
+            <div className="h-full overflow-y-auto bg-white dark:bg-slate-900 scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
               {/* Botón cerrar */}
               <div className="sticky top-0 bg-slate-100 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-600 z-10">
                 <div className="flex items-center justify-between">
@@ -687,10 +722,11 @@ const App: React.FC = () => {
           onToggleSpeech={handleToggleSpeech}
         />
         
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-        />
+                  <ChatInput
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            isChatInitialized={isChatInitialized}
+          />
         
         <div ref={chatEndRef} />
       </div>

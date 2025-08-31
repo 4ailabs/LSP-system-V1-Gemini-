@@ -101,28 +101,31 @@ const MessageComponent: React.FC<MessageProps> = ({
               />
               
               {/* Iconos de acción abajo del texto generado */}
-              <div className="flex items-center space-x-3 sm:space-x-4 mt-3 sm:mt-6 opacity-70 hover:opacity-100 transition-opacity">
+              <div className="flex items-center space-x-2 sm:space-x-3 mt-3 sm:mt-6 opacity-70 hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => onToggleInsight(message.id)}
-                  className={`text-slate-400 hover:text-yellow-500 ${isInsight ? 'text-yellow-500' : ''} transition-colors p-1`}
+                  className={`text-slate-400 hover:text-yellow-500 ${isInsight ? 'text-yellow-500' : ''} transition-colors p-2 rounded-lg touch-manipulation`}
                   aria-label={isInsight ? 'Remove from insights' : 'Add to insights'}
+                  style={{ minHeight: '44px', minWidth: '44px' }}
                 >
-                  <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <Star className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onCopyMessage(message)}
-                  className={`text-slate-400 hover:text-slate-600 ${isCopied ? 'opacity-100' : ''} transition-colors p-1`}
+                  className={`text-slate-400 hover:text-slate-600 ${isCopied ? 'opacity-100' : ''} transition-colors p-2 rounded-lg touch-manipulation`}
                   aria-label={isCopied ? 'Copied!' : 'Copy message'}
                   disabled={isCopied}
+                  style={{ minHeight: '44px', minWidth: '44px' }}
                 >
-                  {isCopied ? <Check className="w-3 h-3 sm:w-4 sm:h-4" /> : <Copy className="w-3 h-3 sm:w-4 sm:h-4" />}
+                  {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <button
                   onClick={() => onToggleSpeech(message)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors p-1"
+                  className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-lg touch-manipulation"
                   aria-label={isSpeaking ? 'Pause reading' : 'Read message aloud'}
+                  style={{ minHeight: '44px', minWidth: '44px' }}
                 >
-                  {isSpeaking ? <PauseCircle className="w-3 h-3 sm:w-4 sm:h-4" /> : <Volume2 className="w-3 h-3 sm:w-4 sm:h-4" />}
+                  {isSpeaking ? <PauseCircle className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                 </button>
               </div>
             </div>

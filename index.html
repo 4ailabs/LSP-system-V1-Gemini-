@@ -3,7 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="LSP Insight" />
+    <meta name="theme-color" content="#2563eb" />
     <title>LSP Insight System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,6 +28,61 @@
 <style>
   body {
     font-family: 'Nunito', sans-serif;
+    /* Prevenir zoom en iOS cuando toca inputs */
+    -webkit-text-size-adjust: 100%;
+    /* Suavizar scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Fixes específicos para Safari iOS */
+  * {
+    /* Prevenir highlight azul en tap */
+    -webkit-tap-highlight-color: transparent;
+    /* Mejorar rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Fix para inputs en iOS */
+  input, textarea, select {
+    /* Prevenir zoom automático */
+    font-size: 16px;
+    /* Remover estilo por defecto de iOS */
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  
+  /* Fix para el viewport en Safari */
+  html {
+    height: 100%;
+    /* Prevenir bounce scroll */
+    overscroll-behavior: none;
+  }
+  
+  body {
+    height: 100%;
+    /* Prevenir bounce scroll */
+    overscroll-behavior: none;
+  }
+  
+  #root {
+    height: 100vh;
+    /* Soporte para iPhone X+ */
+    height: 100svh;
+  }
+  
+  /* Fix para scroll en containers */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Botones más táctiles en móvil */
+  @media (pointer: coarse) {
+    button {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 </style>
 </head>

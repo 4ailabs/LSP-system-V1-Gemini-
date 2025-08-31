@@ -4,9 +4,10 @@ import { Send, Image as ImageIcon, X } from 'lucide-react';
 interface ChatInputProps {
   onSendMessage: (text: string, imageData?: string) => void;
   isLoading: boolean;
+  isChatInitialized?: boolean;
 }
 
-const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
+const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatInitialized = true }) => {
   const [message, setMessage] = useState('');
   const [imageData, setImageData] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -97,20 +98,33 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
 
           {/* Campo de texto */}
           <div className="flex-1 relative">
+            {/* Indicador de estado del chat */}
+            {!isChatInitialized && (
+              <div className="absolute -top-8 left-0 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded">
+                ⚠️ Chat no inicializado
+              </div>
+            )}
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Escribe tu mensaje..."
               rows={1}
-              className="w-full p-3 sm:p-4 pr-12 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+              className="w-full p-3 sm:p-4 pr-12 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               style={{
                 minHeight: '48px',
-                maxHeight: '120px'
+                maxHeight: '120px',
+                fontSize: '16px', // Prevenir zoom en iOS
+                WebkitAppearance: 'none',
+                borderRadius: '8px'
               }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
                 target.style.height = 'auto';
                 target.style.height = Math.min(target.scrollHeight, 120) + 'px';
+              }}
+              onFocus={(e) => {
+                // Fix para iOS: prevenir zoom automático
+                e.target.style.fontSize = '16px';
               }}
             />
           </div>
