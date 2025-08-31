@@ -9,8 +9,7 @@ import {
   Pause,
   CheckCircle,
   Edit3,
-  Images,
-  RotateCcw
+  Images
 } from 'lucide-react';
 import { LspPhase } from '../types';
 import { PHASE_DESCRIPTIONS } from '../constants';
@@ -36,7 +35,6 @@ interface SidebarProps {
   onDeleteSession: (sessionId: string) => void;
   onEditSessionName: (sessionId: string, newName: string) => void;
   onOpenGallery: () => void;
-  onResetSession: () => void;
   isMobile?: boolean;
 }
 
@@ -50,7 +48,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onDeleteSession,
   onEditSessionName,
   onOpenGallery,
-  onResetSession,
   isMobile = false
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -165,13 +162,6 @@ const Sidebar: React.FC<SidebarProps> = ({
               Fases LSP
             </h3>
             <div className="space-y-2 sm:space-y-3">
-              {/* Debug info - solo visible en desarrollo */}
-              {process.env.NODE_ENV === 'development' && (
-                <div className="text-xs text-yellow-600 dark:text-yellow-400 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
-                  Fase actual: {currentPhase}
-                </div>
-              )}
-              
               {Object.entries(PHASE_DESCRIPTIONS).map(([phaseKey, phase]) => {
                 const phaseId = parseInt(phaseKey) as LspPhase;
                 const isActive = phaseId === currentPhase;
@@ -255,19 +245,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          {/* Botón de Reinicialización */}
-          {currentSessionId && (
-            <div className="space-y-2 sm:space-y-3">
-              <button
-                onClick={onResetSession}
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-medium py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2 sm:space-x-3"
-                title="Reinicializar sesión sin borrar historial"
-              >
-                <RotateCcw size={14} className="sm:w-4 sm:h-4" />
-                <span>Reinicializar Sesión</span>
-              </button>
-            </div>
-          )}
+
         </div>
 
         {/* Footer con Colores LEGO® */}

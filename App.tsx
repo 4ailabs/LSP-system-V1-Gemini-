@@ -562,26 +562,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Reinicializar sesión actual sin borrarla
-  const handleResetSession = useCallback(async () => {
-    if (!currentSessionId) return;
-    
-    try {
-      // Reinicializar chat manteniendo la sesión
-      chatRef.current = startChatSession();
-      
-      // Resetear fase a IDENTIFICATION
-      setCurrentPhase(LspPhase.IDENTIFICATION);
-      await updateSession(currentSessionId, { currentPhase: LspPhase.IDENTIFICATION });
-      
-      // Mostrar confirmación
-      alert('Sesión reinicializada. Puedes comenzar una nueva conversación manteniendo el historial.');
-      
-    } catch (error) {
-      console.error('Error reinicializando sesión:', error);
-      alert('Error al reinicializar la sesión');
-    }
-  }, [currentSessionId, updateSession]);
+
 
   // Eliminar sesión
   const handleDeleteSession = useCallback(async (sessionId: string) => {
@@ -806,7 +787,6 @@ const App: React.FC = () => {
           onDeleteSession={handleDeleteSession}
           onEditSessionName={handleSaveSessionName}
           onOpenGallery={handleOpenGallery}
-          onResetSession={handleResetSession}
         />
       </div>
       
@@ -854,7 +834,6 @@ const App: React.FC = () => {
                   handleOpenGallery();
                   setIsMobileMenuOpen(false);
                 }}
-                onResetSession={handleResetSession}
               />
             </div>
           </div>
