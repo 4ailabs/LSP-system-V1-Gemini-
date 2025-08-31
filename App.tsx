@@ -805,72 +805,76 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-slate-900" style={{ height: '100svh' }}>
-      {/* Header simplificado con indicador de fase */}
-      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 px-4 py-3">
-        <div className="flex items-center justify-between max-w-6xl mx-auto">
+      {/* Header optimizado para móvil */}
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600">
+        {/* Primera fila: Logo, título y menú */}
+        <div className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3">
           {/* Logo y título */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {/* 4 Barras de Colores LEGO® */}
-            <div className="flex space-x-1">
-              <div className="w-2 h-6 bg-red-600 rounded-full"></div>
-              <div className="w-2 h-6 bg-yellow-400 rounded-full"></div>
-              <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
-              <div className="w-2 h-6 bg-green-500 rounded-full"></div>
+            <div className="flex space-x-0.5 sm:space-x-1">
+              <div className="w-1.5 sm:w-2 h-5 sm:h-6 bg-red-600 rounded-full"></div>
+              <div className="w-1.5 sm:w-2 h-5 sm:h-6 bg-yellow-400 rounded-full"></div>
+              <div className="w-1.5 sm:w-2 h-5 sm:h-6 bg-blue-500 rounded-full"></div>
+              <div className="w-1.5 sm:w-2 h-5 sm:h-6 bg-green-500 rounded-full"></div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                LSP Insight System
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200 truncate">
+                LSP Insight
               </h1>
               {currentSession && (
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 truncate max-w-[120px] sm:max-w-none">
                   {currentSession.name}
                 </p>
               )}
             </div>
           </div>
 
-          {/* Indicador de fase y controles */}
-          <div className="flex items-center space-x-4">
-            {/* Indicador de fase actual */}
-            <div className="flex items-center bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-800">
-              <div className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></div>
-              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+          {/* Botones de acción - Solo iconos en móvil */}
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <button
+              onClick={handleNewSession}
+              className="flex items-center justify-center bg-green-600 hover:bg-green-700 text-white w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-lg transition-colors"
+              title="Nueva sesión"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              <span className="hidden sm:inline sm:ml-1 text-sm font-medium">Nueva</span>
+            </button>
+            
+            <button
+              onClick={handleOpenGallery}
+              className="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-lg transition-colors"
+              title="Galería"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span className="hidden sm:inline sm:ml-1 text-sm font-medium">Galería</span>
+            </button>
+
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex items-center justify-center bg-slate-600 hover:bg-slate-700 text-white w-8 h-8 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 rounded-lg transition-colors"
+              title="Menú de sesiones"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span className="hidden sm:inline sm:ml-1 text-sm font-medium">Menú</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Segunda fila: Indicador de fase */}
+        <div className="px-3 sm:px-4 pb-2 sm:pb-3">
+          <div className="flex items-center justify-center">
+            <div className="flex items-center bg-blue-50 dark:bg-blue-900/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-200 dark:border-blue-800">
+              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-600 rounded-full mr-1.5 sm:mr-2 animate-pulse"></div>
+              <span className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-200">
                 Fase {currentPhase}/6: {getPhaseDescription(currentPhase)}
               </span>
-            </div>
-
-            {/* Botones de acción */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleNewSession}
-                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <span className="hidden sm:inline">Nueva</span>
-              </button>
-              
-              <button
-                onClick={handleOpenGallery}
-                className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <span className="hidden sm:inline">Galería</span>
-              </button>
-
-              {/* Menú de sesiones */}
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="flex items-center space-x-1 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <span className="hidden sm:inline">Menú</span>
-              </button>
             </div>
           </div>
         </div>
@@ -882,13 +886,14 @@ const App: React.FC = () => {
           className="fixed inset-0 z-50 bg-black bg-opacity-50" 
           onClick={() => setIsMobileMenuOpen(false)}
         >
-          <div className="absolute inset-y-0 right-0 w-80 max-w-sm" onClick={(e) => e.stopPropagation()}>
-            <div className="h-full bg-white dark:bg-slate-900 p-4 overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sesiones</h2>
+          <div className="absolute inset-y-0 right-0 w-72 sm:w-80 max-w-[85vw]" onClick={(e) => e.stopPropagation()}>
+            <div className="h-full bg-white dark:bg-slate-900 flex flex-col">
+              {/* Header del menú */}
+              <div className="flex items-center justify-between p-3 sm:p-4 border-b border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800">
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">Sesiones</h2>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                  className="p-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -896,36 +901,42 @@ const App: React.FC = () => {
                 </button>
               </div>
               
-              {/* Lista simple de sesiones */}
-              <div className="space-y-3">
+              {/* Lista de sesiones con scroll */}
+              <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2 sm:space-y-3">
                 {sessions.map((session) => (
                   <div
                     key={session.id}
-                    className={`p-3 rounded-lg cursor-pointer transition-colors border ${
+                    className={`p-3 rounded-lg cursor-pointer transition-colors border active:scale-95 ${
                       session.id === currentSessionId 
-                        ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800' 
-                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                        ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 shadow-sm' 
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-sm'
                     }`}
                     onClick={() => {
                       handleSelectSession(session.id);
                       setIsMobileMenuOpen(false);
                     }}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-medium text-slate-900 dark:text-slate-100 text-sm">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-slate-900 dark:text-slate-100 text-sm truncate">
                           {session.name}
                         </h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-300">
-                          Fase {session.currentPhase} • {new Date(session.createdAt).toLocaleDateString()}
+                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5">
+                          Fase {session.currentPhase} • {new Date(session.createdAt).toLocaleDateString('es-ES', { 
+                            day: '2-digit', 
+                            month: '2-digit' 
+                          })}
                         </p>
                       </div>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDeleteSession(session.id);
+                          if (confirm('¿Eliminar esta sesión?')) {
+                            handleDeleteSession(session.id);
+                          }
                         }}
-                        className="text-red-500 hover:text-red-700 p-1"
+                        className="ml-2 text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title="Eliminar sesión"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -934,6 +945,17 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 ))}
+                
+                {/* Mensaje si no hay sesiones */}
+                {sessions.length === 0 && (
+                  <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                    <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                    <p className="text-sm">No hay sesiones</p>
+                    <p className="text-xs mt-1">Crea una nueva para comenzar</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -957,30 +979,34 @@ const App: React.FC = () => {
           isChatInitialized={isChatInitialized}
         />
         
-        {/* Footer con estadísticas */}
-        <div className="bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-600 px-4 py-2">
-          <div className="flex items-center justify-center space-x-6 max-w-6xl mx-auto">
-            <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-              </svg>
-              <span>{messages.length} mensajes</span>
-            </div>
-            
-            <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
-              <span>{messages.filter(m => m.isInsight).length} insights</span>
-            </div>
-            
-            <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              <span>{sessions.length} sesiones</span>
+        {/* Footer con estadísticas - Optimizado para móvil */}
+        <div className="bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-600 px-2 sm:px-4 py-1.5 sm:py-2">
+          <div className="flex items-center justify-between sm:justify-center sm:space-x-6 max-w-6xl mx-auto">
+            {/* Stats condensadas en móvil */}
+            <div className="flex items-center space-x-3 sm:space-x-6">
+              <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span className="text-xs sm:text-sm">{messages.length}</span>
+              </div>
+              
+              <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                <span className="text-xs sm:text-sm">{messages.filter(m => m.isInsight).length}</span>
+              </div>
+              
+              <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span className="text-xs sm:text-sm">{sessions.length}</span>
+              </div>
             </div>
 
+            {/* 4ailabs branding */}
             <div className="text-xs text-slate-500 dark:text-slate-500">
               <span className="text-blue-600 dark:text-blue-400 font-medium">4ailabs</span>
             </div>

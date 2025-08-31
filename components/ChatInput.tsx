@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { SendHorizontal, Image as ImageIcon, X } from 'lucide-react';
+import { MicrophoneIcon, StopCircleIcon } from './icons';
 
 interface ChatInputProps {
   onSendMessage: (text: string, imageData?: string) => void;
@@ -11,7 +12,11 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
   const [message, setMessage] = useState('');
   const [imageData, setImageData] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordingIntervalRef = useRef<number | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +68,93 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
     }
   };
 
+  // Función para iniciar grabación de audio
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+        
+        // Convertir audio a texto usando Web Speech API
+        try {
+          const recognition = new (window.SpeechRecognition || (window as any).webkitSpeechRecognition)();
+          recognition.lang = 'es-ES';
+          recognition.continuous = false;
+          recognition.interimResults = false;
+
+          recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setMessage(transcript);
+          };
+
+          recognition.onerror = (event: any) => {
+            console.error('Error en reconocimiento de voz:', event.error);
+            alert('Error en el reconocimiento de voz. Por favor, intenta de nuevo.');
+          };
+
+          // Crear un archivo de audio temporal para el reconocimiento
+          const audioFile = new File([audioBlob], 'recording.wav', { type: 'audio/wav' });
+          const audioUrl = URL.createObjectURL(audioFile);
+          
+          // Iniciar reconocimiento
+          recognition.start();
+          
+        } catch (error) {
+          console.error('Error al procesar audio:', error);
+          alert('No se pudo procesar el audio. Por favor, escribe tu mensaje.');
+        }
+
+        // Limpiar stream
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+
+      // Iniciar contador de tiempo
+      recordingIntervalRef.current = window.setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error al acceder al micrófono:', error);
+      alert('No se pudo acceder al micrófono. Por favor, verifica los permisos.');
+    }
+  };
+
+  // Función para detener grabación
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+      
+      setRecordingTime(0);
+    }
+  };
+
+  // Formatear tiempo de grabación
+  const formatRecordingTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-600 p-3 sm:p-4">
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -84,17 +176,50 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
           </div>
         )}
 
+        {/* Indicador de grabación */}
+        {isRecording && (
+          <div className="flex items-center justify-center space-x-2 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg border border-red-200 dark:border-red-800">
+            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-red-700 dark:text-red-300">
+              Grabando... {formatRecordingTime(recordingTime)}
+            </span>
+          </div>
+        )}
+
         {/* Input principal */}
-        <div className="flex items-end space-x-2 sm:space-x-3">
+        <div className="flex items-center space-x-2 sm:space-x-3">
           {/* Botón de imagen */}
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
-            className="flex-shrink-0 p-2 sm:p-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+            disabled={isLoading || isRecording}
+            className="flex-shrink-0 w-12 h-12 sm:w-12 sm:h-12 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 flex items-center justify-center"
+            title="Adjuntar imagen"
           >
-            <ImageIcon size={20} className="sm:w-5 sm:h-5" />
+            <ImageIcon size={20} />
           </button>
+
+          {/* Botón de grabación de audio */}
+          {!isRecording ? (
+            <button
+              type="button"
+              onClick={startRecording}
+              disabled={isLoading}
+              className="flex-shrink-0 w-12 h-12 sm:w-12 sm:h-12 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors disabled:opacity-50 flex items-center justify-center"
+              title="Grabar audio"
+            >
+              <MicrophoneIcon />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={stopRecording}
+              className="flex-shrink-0 w-12 h-12 sm:w-12 sm:h-12 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center justify-center animate-pulse"
+              title="Detener grabación"
+            >
+              <StopCircleIcon />
+            </button>
+          )}
 
           {/* Campo de texto */}
           <div className="flex-1 relative">
@@ -109,13 +234,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Escribe tu mensaje..."
               rows={1}
-              className="w-full p-3 sm:p-4 pr-12 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
               style={{
                 minHeight: '48px',
                 maxHeight: '120px',
                 fontSize: '16px', // Prevenir zoom en iOS
-                WebkitAppearance: 'none',
-                borderRadius: '8px'
+                WebkitAppearance: 'none'
               }}
               onInput={(e) => {
                 const target = e.target as HTMLTextAreaElement;
@@ -133,12 +257,17 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, isChatI
           <button
             type="submit"
             disabled={!message.trim() || isLoading}
-            className="flex-shrink-0 p-3 sm:p-4 bg-gray-200 hover:bg-gray-300 disabled:bg-slate-400 text-gray-700 hover:text-gray-800 rounded-full transition-colors disabled:opacity-50 flex items-center justify-center border border-gray-300"
+            className={`flex-shrink-0 w-12 h-12 sm:w-12 sm:h-12 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center ${
+              message.trim() && !isLoading 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm' 
+                : 'bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400'
+            }`}
+            title="Enviar mensaje"
           >
             {isLoading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
             ) : (
-              <SendHorizontal size={20} className="sm:w-5 sm:h-5" />
+              <SendHorizontal size={20} />
             )}
           </button>
         </div>
