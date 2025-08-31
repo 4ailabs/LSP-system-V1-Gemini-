@@ -611,7 +611,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-white dark:bg-slate-900" style={{ height: '100vh', height: '100svh' }}>
+    <div className="flex h-screen bg-white dark:bg-slate-900" style={{ height: '100svh' }}>
       {/* Sidebar - Desktop */}
       <div className="hidden lg:block">
         <Sidebar
