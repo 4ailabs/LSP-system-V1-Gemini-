@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ChatWindow from './components/ChatWindow';
 import ChatInput from './components/ChatInput';
-import Sidebar from './components/Sidebar';
 import { SessionNameModal } from './components/SessionNameModal';
 import SessionGallery from './components/SessionGallery';
 import ImageUploadModal from './components/ImageUploadModal';
@@ -162,69 +161,87 @@ const App: React.FC = () => {
       });
     }
     
-    // PRIORIDAD 2: Si no hay marcadores explícitos, usar detección por palabras clave
+    // PRIORIDAD 2: Solo usar detección por palabras clave si es EXTREMADAMENTE específica
     if (updates.length === 0) {
       const lowerText = text.toLowerCase();
-      console.log('🔍 Buscando palabras clave de fase en:', lowerText.substring(0, 100));
+      console.log('🔍 Buscando frases específicas de transición de fase en:', lowerText.substring(0, 100));
       
-      // Fase 1: Identificación y Contextualización
-      if (lowerText.includes('fase 1') || 
-          lowerText.includes('identificación') || 
-          lowerText.includes('contextualización') ||
-          lowerText.includes('bienvenid') ||
-          lowerText.includes('nombre del usuario') ||
-          lowerText.includes('objetivo central') ||
-          lowerText.includes('¿cómo te llamas?') ||
-          lowerText.includes('¿cuál es tu nombre?')) {
-        updates.push(LspPhase.IDENTIFICATION);
+      // Solo buscar frases EXTREMADAMENTE específicas que indiquen transición clara de fase
+      // Y que NO sean parte de explicaciones o referencias generales
+      
+      // Verificar que no sea solo una referencia o explicación
+      const isReference = lowerText.includes('en la fase') || 
+                         lowerText.includes('durante la') ||
+                         lowerText.includes('sobre la') ||
+                         lowerText.includes('explicar') ||
+                         lowerText.includes('refiere') ||
+                         lowerText.includes('menciona');
+      
+      if (!isReference) {
+        // Fase 1: Solo al inicio con bienvenida muy específica
+        if ((lowerText.includes('¡hola!') && lowerText.includes('soy tu asistente') && lowerText.includes('lsp')) ||
+            (lowerText.includes('bienvenid') && lowerText.includes('lego® serious play') && lowerText.includes('facilitador')) ||
+            (lowerText.includes('¿cómo te llamas?') && lowerText.includes('comenzar'))) {
+          updates.push(LspPhase.IDENTIFICATION);
+        }
+        
+        // Fase 2: Solo cuando se presenta protocolo ESTRUCTURADO
+        else if (lowerText.includes('diseñaremos el siguiente protocolo estructurado') ||
+                 (lowerText.includes('protocolo personalizado') && lowerText.includes('paso a paso')) ||
+                 (lowerText.includes('secuencia de construcción') && lowerText.includes('tiempos específicos'))) {
+          updates.push(LspPhase.PROTOCOL_DEVELOPMENT);
+        }
+        
+        // Fase 3: Solo con instrucción DIRECTA y EXPLÍCITA de construir
+        else if (lowerText.includes('ahora es momento de construir tu primer modelo') ||
+                 lowerText.includes('comienza la construcción con tus bricks') ||
+                 lowerText.includes('toma tus bricks y construye ahora')) {
+          updates.push(LspPhase.IMPLEMENTATION);
+        }
+        
+        // Fase 4: Solo cuando se solicita DIRECTAMENTE compartir modelo construido
+        else if (lowerText.includes('comparte una foto de tu modelo completado') ||
+                 lowerText.includes('cuéntame sobre tu modelo ya construido') ||
+                 lowerText.includes('describe el modelo que terminaste de construir')) {
+          updates.push(LspPhase.INSIGHT_DISCOVERY);
+        }
+        
+        // Fase 5: Solo cuando se presentan planes de acción ESPECÍFICOS con timeframes
+        else if ((lowerText.includes('plan de acción de 7 días') && lowerText.includes('micro-hábitos')) ||
+                 (lowerText.includes('plan de 30 días') && lowerText.includes('comportamentales')) ||
+                 (lowerText.includes('plan de 100 días') && lowerText.includes('transformación'))) {
+          updates.push(LspPhase.STRATEGY_DEVELOPMENT);
+        }
+        
+        // Fase 6: Solo con cierre EXPLÍCITO y FORMAL
+        else if (lowerText.includes('con esto concluimos formalmente nuestra sesión lsp') ||
+                 lowerText.includes('hemos completado exitosamente el proceso completo') ||
+                 lowerText.includes('resumen final y cierre de nuestra sesión')) {
+          updates.push(LspPhase.EVALUATION);
+        }
       }
       
-      // Fase 2: Desarrollo de Protocolos
-      if (lowerText.includes('fase 2') || 
-          lowerText.includes('protocolo') ||
-          lowerText.includes('diseñar protocolo') ||
-          lowerText.includes('secuencia de modelos') ||
-          lowerText.includes('plan de construcción') ||
-          lowerText.includes('estructura del proceso')) {
-        updates.push(LspPhase.PROTOCOL_DEVELOPMENT);
-      }
-      
-      // Fase 3: Implementación LSP
-      if (lowerText.includes('fase 3') || 
-          lowerText.includes('implementación') ||
-          lowerText.includes('construir') ||
-          lowerText.includes('construcción') ||
-          lowerText.includes('piensa con las manos') ||
-          lowerText.includes('comenzar a construir')) {
-        updates.push(LspPhase.IMPLEMENTATION);
-      }
-      
-      // Fase 4: Descubrimiento de Insights
-      if (lowerText.includes('fase 4') || 
-          lowerText.includes('insights') ||
-          lowerText.includes('descubrimiento') ||
-          lowerText.includes('comparte tu modelo') ||
-          lowerText.includes('cuéntame sobre tu modelo') ||
-          lowerText.includes('metáforas')) {
-        updates.push(LspPhase.INSIGHT_DISCOVERY);
-      }
-      
-      // Fase 5: Desarrollo de Estrategias
-      if (lowerText.includes('fase 5') || 
-          lowerText.includes('estrategia') ||
-          lowerText.includes('plan de acción') ||
-          lowerText.includes('próximos pasos') ||
-          lowerText.includes('implementar cambios')) {
-        updates.push(LspPhase.STRATEGY_DEVELOPMENT);
-      }
-      
-      // Fase 6: Evaluación y Análisis
-      if (lowerText.includes('fase 6') || 
-          lowerText.includes('evaluación') ||
-          lowerText.includes('conclusión') ||
-          lowerText.includes('concluimos nuestra sesión') ||
-          lowerText.includes('resumen final')) {
-        updates.push(LspPhase.EVALUATION);
+      // SAFEGUARD: Validación adicional de transición
+      if (updates.length > 0 && currentPhase) {
+        const detectedPhase = updates[updates.length - 1];
+        
+        // No permitir saltos de más de 1 fase
+        if (detectedPhase > currentPhase + 1) {
+          console.log('⚠️ Salto de fase demasiado grande bloqueado:', currentPhase, '→', detectedPhase);
+          updates.length = 0; // Limpiar detección
+        }
+        
+        // No avanzar si es la misma fase
+        else if (detectedPhase === currentPhase) {
+          console.log('⚠️ Misma fase detectada, ignorando:', detectedPhase);
+          updates.length = 0; // Limpiar detección
+        }
+        
+        // Verificación de coherencia: no retroceder
+        else if (detectedPhase < currentPhase) {
+          console.log('⚠️ Intento de retroceso bloqueado:', currentPhase, '→', detectedPhase);
+          updates.length = 0; // Limpiar detección
+        }
       }
     }
     
@@ -335,6 +352,19 @@ const App: React.FC = () => {
               console.error('Error processing stream:', error);
     }
   }, [addMessage, updateSession, cleanGeminiResponse, extractPhaseUpdates, detectSessionConclusion, currentPhase, currentSessionMessages]);
+
+  // Obtener descripción de fase
+  const getPhaseDescription = (phase: number): string => {
+    const descriptions: { [key: number]: string } = {
+      1: 'Identificación',
+      2: 'Protocolo', 
+      3: 'Implementación',
+      4: 'Insights',
+      5: 'Estrategia',
+      6: 'Evaluación'
+    };
+    return descriptions[phase] || 'Desconocida';
+  };
 
   // Función para enviar mensaje
   const handleSendMessage = async (text: string, imageData?: string) => {
@@ -774,114 +804,144 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-white dark:bg-slate-900" style={{ height: '100svh' }}>
-      {/* Sidebar - Desktop */}
-      <div className="hidden lg:block">
-        <Sidebar
-          sessions={sessions}
-          currentPhase={currentPhase}
-          messages={messages}
-          currentSessionId={currentSessionId}
-          onNewSession={handleNewSession}
-          onSelectSession={handleSelectSession}
-          onDeleteSession={handleDeleteSession}
-          onEditSessionName={handleSaveSessionName}
-          onOpenGallery={handleOpenGallery}
-        />
+    <div className="flex flex-col h-screen bg-white dark:bg-slate-900" style={{ height: '100svh' }}>
+      {/* Header simplificado con indicador de fase */}
+      <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 px-4 py-3">
+        <div className="flex items-center justify-between max-w-6xl mx-auto">
+          {/* Logo y título */}
+          <div className="flex items-center space-x-3">
+            {/* 4 Barras de Colores LEGO® */}
+            <div className="flex space-x-1">
+              <div className="w-2 h-6 bg-red-600 rounded-full"></div>
+              <div className="w-2 h-6 bg-yellow-400 rounded-full"></div>
+              <div className="w-2 h-6 bg-blue-500 rounded-full"></div>
+              <div className="w-2 h-6 bg-green-500 rounded-full"></div>
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                LSP Insight System
+              </h1>
+              {currentSession && (
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {currentSession.name}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Indicador de fase y controles */}
+          <div className="flex items-center space-x-4">
+            {/* Indicador de fase actual */}
+            <div className="flex items-center bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-full border border-blue-200 dark:border-blue-800">
+              <div className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></div>
+              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Fase {currentPhase}/6: {getPhaseDescription(currentPhase)}
+              </span>
+            </div>
+
+            {/* Botones de acción */}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleNewSession}
+                className="flex items-center space-x-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <span className="hidden sm:inline">Nueva</span>
+              </button>
+              
+              <button
+                onClick={handleOpenGallery}
+                className="flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span className="hidden sm:inline">Galería</span>
+              </button>
+
+              {/* Menú de sesiones */}
+              <button
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="flex items-center space-x-1 bg-slate-600 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg transition-colors text-sm font-medium"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span className="hidden sm:inline">Menú</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-      
-      {/* Mobile Menu Overlay */}
+
+      {/* Mobile Menu Overlay - Simplificado */}
       {isMobileMenuOpen && (
         <div 
-          className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50" 
+          className="fixed inset-0 z-50 bg-black bg-opacity-50" 
           onClick={() => setIsMobileMenuOpen(false)}
-          style={{ touchAction: 'none' }}
         >
-          <div className="absolute inset-y-0 left-0 w-80 max-w-sm" onClick={(e) => e.stopPropagation()}>
-            <div className="h-full overflow-y-auto bg-white dark:bg-slate-900 scroll-container" style={{ WebkitOverflowScrolling: 'touch' }}>
-              {/* Botón cerrar */}
-              <div className="sticky top-0 bg-slate-100 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-600 z-10">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white">Menú</h2>
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
+          <div className="absolute inset-y-0 right-0 w-80 max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="h-full bg-white dark:bg-slate-900 p-4 overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Sesiones</h2>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
               
-              {/* Sidebar en móvil */}
-              <Sidebar
-                sessions={sessions}
-                currentPhase={currentPhase}
-                messages={messages}
-                currentSessionId={currentSessionId}
-                onNewSession={() => {
-                  handleNewSession();
-                  setIsMobileMenuOpen(false);
-                }}
-                onSelectSession={(sessionId) => {
-                  handleSelectSession(sessionId);
-                  setIsMobileMenuOpen(false);
-                }}
-                onDeleteSession={handleDeleteSession}
-                onEditSessionName={handleSaveSessionName}
-                onOpenGallery={() => {
-                  handleOpenGallery();
-                  setIsMobileMenuOpen(false);
-                }}
-              />
+              {/* Lista simple de sesiones */}
+              <div className="space-y-3">
+                {sessions.map((session) => (
+                  <div
+                    key={session.id}
+                    className={`p-3 rounded-lg cursor-pointer transition-colors border ${
+                      session.id === currentSessionId 
+                        ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800' 
+                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    }`}
+                    onClick={() => {
+                      handleSelectSession(session.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-slate-900 dark:text-slate-100 text-sm">
+                          {session.name}
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                          Fase {session.currentPhase} • {new Date(session.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSession(session.id);
+                        }}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       )}
       
-      {/* Contenido principal - Full width en móviles */}
-      <div className="flex-1 flex flex-col w-full lg:w-auto">
-        {/* Header móvil con botón de menú */}
-        <div className="lg:hidden bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-600 p-3 sm:p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              {/* 4 Barras de Colores LEGO® */}
-              <div className="flex space-x-1">
-                <div className="w-1.5 h-6 bg-red-600 rounded-full"></div>
-                <div className="w-1.5 h-6 bg-yellow-400 rounded-full"></div>
-                <div className="w-1.5 h-6 bg-blue-500 rounded-full"></div>
-                <div className="w-1.5 h-6 bg-green-500 rounded-full"></div>
-              </div>
-              <div>
-                <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
-                  LSP Insight
-                </h1>
-                {currentSession && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
-                    {currentSession.name}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {/* Indicador de fase actual en móvil */}
-              <div className="hidden xs:flex items-center bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded-full">
-                <span className="text-xs font-medium text-blue-800 dark:text-blue-200">Fase {currentPhase}</span>
-              </div>
-              <button
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="p-1.5 sm:p-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-                aria-label="Abrir menú"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        
+      {/* Contenido principal - Full width */}
+      <div className="flex-1 flex flex-col">
         <ChatWindow
           messages={currentSessionMessages}
           isLoading={isLoading}
@@ -891,11 +951,41 @@ const App: React.FC = () => {
           onToggleSpeech={handleToggleSpeech}
         />
         
-                  <ChatInput
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            isChatInitialized={isChatInitialized}
-          />
+        <ChatInput
+          onSendMessage={handleSendMessage}
+          isLoading={isLoading}
+          isChatInitialized={isChatInitialized}
+        />
+        
+        {/* Footer con estadísticas */}
+        <div className="bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-600 px-4 py-2">
+          <div className="flex items-center justify-center space-x-6 max-w-6xl mx-auto">
+            <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              <span>{messages.length} mensajes</span>
+            </div>
+            
+            <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              <span>{messages.filter(m => m.isInsight).length} insights</span>
+            </div>
+            
+            <div className="flex items-center space-x-1 text-xs text-slate-600 dark:text-slate-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span>{sessions.length} sesiones</span>
+            </div>
+
+            <div className="text-xs text-slate-500 dark:text-slate-500">
+              <span className="text-blue-600 dark:text-blue-400 font-medium">4ailabs</span>
+            </div>
+          </div>
+        </div>
         
         <div ref={chatEndRef} />
       </div>
