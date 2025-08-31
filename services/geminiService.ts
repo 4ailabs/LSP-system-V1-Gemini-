@@ -240,17 +240,29 @@ Si alguien pregunta: "¿Quién te creó?", responde:
 
 // Función para iniciar una sesión de chat con Gemini
 export function startChatSession(history?: Content[]): Chat {
+  // Verificar que estemos en el navegador
+  if (typeof window === 'undefined') {
+    throw new Error("Esta función solo puede ejecutarse en el navegador.");
+  }
+
+  // Verificar API key
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("VITE_GEMINI_API_KEY no está configurada. Por favor, configura tu API key de Gemini.");
   }
 
-  const chat = ai.chats.create({
-    model: 'gemini-2.5-flash',
-    config: {
-      systemInstruction: SYSTEM_PROMPT,
-    },
-    history: history || [],
-  });
-  
-  return chat;
+  try {
+    const chat = ai.chats.create({
+      model: 'gemini-2.5-flash',
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+      },
+      history: history || [],
+    });
+    
+    return chat;
+  } catch (error) {
+    console.error('Error creando chat de Gemini:', error);
+    throw new Error(`Error al inicializar el chat: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+  }
 }

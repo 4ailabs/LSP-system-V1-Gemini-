@@ -79,12 +79,21 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('Error inicializando chat:', error);
         setIsChatInitialized(false);
-        // Si falla la inicialización, mostrar error específico
-        if (error instanceof Error && error.message.includes('VITE_GEMINI_API_KEY')) {
-          alert('Error: API Key no configurada. Contacta al administrador.');
-        } else {
-          alert('Error al inicializar el chat. Por favor, recarga la página.');
+        
+        let errorMessage = 'Error al inicializar el chat.';
+        
+        if (error instanceof Error) {
+          if (error.message.includes('VITE_GEMINI_API_KEY')) {
+            errorMessage = 'Error: API Key no configurada. Contacta al administrador.';
+          } else if (error.message.includes('navegador')) {
+            errorMessage = 'Error: Problema de compatibilidad del navegador.';
+          } else if (error.message.includes('inicializar')) {
+            errorMessage = 'Error: No se pudo conectar con Gemini. Verifica tu internet.';
+          }
         }
+        
+        console.error('Error de inicialización:', errorMessage);
+        // No mostrar alert aquí para evitar spam, solo en el input
       }
     }
   }, [currentSession]);
@@ -310,7 +319,20 @@ const App: React.FC = () => {
       } catch (error) {
         console.error('Error reinicializando chat:', error);
         setIsChatInitialized(false);
-        alert('Error: No se pudo inicializar el chat. Por favor, recarga la página.');
+        
+        let errorMessage = 'Error: No se pudo inicializar el chat.';
+        
+        if (error instanceof Error) {
+          if (error.message.includes('VITE_GEMINI_API_KEY')) {
+            errorMessage = 'Error: API Key no configurada. Contacta al administrador.';
+          } else if (error.message.includes('navegador')) {
+            errorMessage = 'Error: Problema de compatibilidad del navegador.';
+          } else if (error.message.includes('inicializar')) {
+            errorMessage = 'Error: No se pudo conectar con Gemini. Verifica tu internet.';
+          }
+        }
+        
+        alert(errorMessage);
         return;
       }
     }
@@ -342,19 +364,28 @@ const App: React.FC = () => {
       }
 
       // Enviar mensaje a Gemini
-      const response = await chatRef.current.sendMessageStream([
-        {
-          text: imageData ? `Imagen: ${text}` : text
-        },
-        ...(imageData ? [{
-          inlineData: {
-            data: imageData.split(',')[1], // Remover el prefijo data:image/...;base64,
-            mimeType: 'image/jpeg'
-          }
-        }] : [])
-      ]);
-
-      console.log('Respuesta de Gemini recibida');
+      console.log('Enviando mensaje a Gemini...');
+      console.log('Chat ref:', chatRef.current);
+      
+      let response;
+      try {
+        response = await chatRef.current.sendMessageStream([
+          {
+            text: imageData ? `Imagen: ${text}` : text
+          },
+          ...(imageData ? [{
+            inlineData: {
+              data: imageData.split(',')[1], // Remover el prefijo data:image/...;base64,
+              mimeType: 'image/jpeg'
+            }
+          }] : [])
+        ]);
+        
+        console.log('Respuesta de Gemini recibida:', response);
+      } catch (geminiError) {
+        console.error('Error enviando mensaje a Gemini:', geminiError);
+        throw new Error(`Error de Gemini: ${geminiError instanceof Error ? geminiError.message : 'Error desconocido'}`);
+      }
 
       // Procesar respuesta
               console.log('Mensajes ANTES de procesar respuesta:', currentSessionMessages.length);
