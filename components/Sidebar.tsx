@@ -238,21 +238,40 @@ const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3 sm:p-4 border-t border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700">
-          <div className="text-center">
-            <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-              LEGO® Serious Play®
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Powered by Gemini AI
-            </p>
-            <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-600">
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                Powered by <span className="text-blue-600 dark:text-blue-400 font-semibold">4ailabs</span>
-              </p>
+        <div className="mt-auto p-4 border-t border-slate-200 dark:border-slate-600">
+            <div className="text-center space-y-3">
+              {/* Logo y título principal */}
+              <div className="flex items-center justify-center space-x-2 mb-3">
+                <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">LSP</span>
+                </div>
+                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  LEGO® Serious Play®
+                </h3>
+              </div>
+              
+              {/* Gemini AI */}
+              <div className="flex items-center justify-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
+                <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
+                <span>Gemini AI</span>
+              </div>
+              
+              {/* Separador */}
+              <div className="w-16 h-px bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent mx-auto"></div>
+              
+              {/* 4ailabs branding */}
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                <span className="text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 transition-colors cursor-pointer">
+                  4ailabs
+                </span>
+              </div>
+              
+              {/* Versión */}
+              <div className="text-xs text-slate-400 dark:text-slate-500">
+                v1.0.0
+              </div>
             </div>
           </div>
-        </div>
       </div>
 
       <SessionNameModal

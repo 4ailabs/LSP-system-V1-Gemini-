@@ -257,6 +257,23 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
               )}
             </button>
           </div>
+
+          {/* Footer */}
+          <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-600">
+            <div className="text-center space-y-2">
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-4 h-4 bg-green-600 rounded flex items-center justify-center">
+                  <ImageIcon size={12} className="text-white" />
+                </div>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Sistema de Subida
+                </span>
+              </div>
+              <div className="text-xs text-slate-400 dark:text-slate-500">
+                <span className="text-blue-600 dark:text-blue-400 font-medium">4ailabs</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

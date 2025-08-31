@@ -149,6 +149,23 @@ const SessionGallery: React.FC<SessionGalleryProps> = ({
               onSelectImage={handleSelectImage}
               onSelectSession={onSelectSession}
             />
+            
+            {/* Footer en vista Grid */}
+            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-600">
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 bg-blue-600 rounded flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">LSP</span>
+                  </div>
+                  <span className="text-sm text-slate-600 dark:text-slate-400">
+                    Galería de Modelos
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-500">
+                  <span className="text-blue-600 dark:text-blue-400 font-medium">4ailabs</span>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           // Vista de Galería (original)
